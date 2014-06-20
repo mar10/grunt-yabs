@@ -2,44 +2,30 @@
   "name": "grunt-yabs",
   "description": "Collection of tools for grunt release workflows.",
   "version": "0.1.0",
-  "homepage": "https://github.com/mar10/grunt-yabs",
+  "homepage": "https://github.com/mar10/grunt-releasetools",
   "author": {
     "name": "Martin Wendt",
     "email": "mar10@wwwendt.de"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/mar10/grunt-yabs.git"
+    "url": "git://github.com/mar10/grunt-releasetools.git"
   },
   "bugs": {
-    "url": "https://github.com/mar10/grunt-yabs/issues"
+    "url": "https://github.com/mar10/grunt-releasetools/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/mar10/grunt-yabs/blob/master/LICENSE-MIT"
+      "url": "https://github.com/mar10/grunt-releasetools/blob/master/LICENSE-MIT"
     }
   ],
   "keywords": [
     "bump",
     "grunt",
     "gruntplugin",
-    "push",
-    "release",
-    "tag",
-    "workflow"
+    "release"
   ],
-  "engines": {
-    "node": ">= 0.8.0"
-  },
-  "scripts": {
-    "test": "grunt test"
-  },
-  "dependencies": {
-    "semver": "^2.3.0",
-    "shelljs": "^0.3.0",
-    "lodash": "^2.4.1"
-  },
   "devDependencies": {
     "grunt-contrib-jshint": "^0.9.2",
     "grunt-contrib-clean": "^0.5.0",
@@ -48,5 +34,10 @@
   },
   "peerDependencies": {
     "grunt": "~0.4.5"
+  },
+  "dependencies": {
+    "semver": "^2.3.0",
+    "shelljs": "^0.3.0",
+    "lodash": "^2.4.1"
   }
 }

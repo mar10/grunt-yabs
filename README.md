@@ -2,6 +2,19 @@
 
 > Collection of tools for grunt release workflows.
 
+Yet Another Build Script, &lt;sigh>. Why? Because
+- It comes with a set of useful tools like 'check', 'bump', 'tag', 'push', 'run', ...
+- It allows to define mini-workflows by running these tasks in arbitrary order
+  with individual options.
+- It's a multi-task, so multiple workflows can be defined.
+- And mainly because it was *fun* to do. 
+  [Join the project](https://github.com/mar10/grunt-yabs/blob/master/tasks/yabs.js) 
+  if you like.
+
+## Status
+This is Work In Progress and barely tested. **Definitely not fit for production!**
+Let me know if you find bugs or have suggestions.
+
 ## Getting Started
 This plugin requires Grunt `~0.4.5`
 
