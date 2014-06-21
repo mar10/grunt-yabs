@@ -9,6 +9,7 @@
  *   - https://github.com/vojtajina/grunt-bump
  *   - https://github.com/geddski/grunt-release
  *   - https://github.com/Darsain/grunt-checkrepo
+ *   - https://github.com/dymonaz/grunt-checkbranch
  *
  * Copyright (c) 2014 Martin Wendt
  * Licensed under the MIT license.
@@ -24,14 +25,72 @@ var shell = require('shelljs');
 module.exports = function(grunt) {
 
   var _ = lodash;
-  var KNOWN_TOOLS = 'bump check commit exec push run tag'.split(' ');
+  var KNOWN_TOOLS = 'bump check commit exec npmPublish push run tag'.split(' ');
   var tool_handlers = {};
+
+  var DEFAULT_OPTIONS = {
+    common: { // options used as default for all tools
+      args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
+      verbose: !!grunt.option('verbose'),
+      enable: true,
+      noWrite: false,           // true enables dry-run
+      manifests: ['package.json'], // First entry is 'master' for synchronizing
+    },
+
+    // The following tools are executed in order of appearance:
+
+    // 'check': Assert preconditons and fail otherwise
+    check: {
+      clean: undefined,         // Repo must/must not contain modifications? 
+      branch: ['master'],       // Current branch must be in this list
+//      allowDirty: [],
+//      isPrerelease: undefined,
+    },
+    // 'bump': increment manifest.version and synchronize with other JSON files.
+    bump: {
+      // bump also requires a mode argmuent (yabs:target:MODE)
+      inc: null,                // Used instead of 'yabs:target:MODE'
+      syncVersion: true,        // Only increment master manifest, then copy version to secondaries
+      syncFields: [],           // Synchronize entries from master to secondaries (if field exists)
+      space: 2,                 // Used by JSON.stringify when files are written
+      updateConfig: "pkg",      // Make sure pkg.version contains new value
+    },
+    // 'run': Run arbitrary grunt tasks (must be defined in the current Gruntfile)
+    run: {
+      tasks: [],
+    },
+    // 'commit': Commit all manifest files (and optionally others)
+    commit: {
+      add: "package.json",      // Also add these files ("." for all)
+      message: 'Bumping version to {%= version %}',
+    },
+    // 'tag': Create a tag
+    tag: {
+      name: 'v{%= version %}',
+      message: 'Version {%= version %}',
+    },
+    // 'push': push changes and tags
+    push: {
+      enable: false,
+      target: '',               // e.g. 'upstream',
+      tags: false,              // Also 'push --tags'
+    },
+    // 'npmPublish': Submit to npm repository
+    npmPublish: {
+      enable: false,
+//      tag: null,
+      message: 'Released {%= version %}',
+    },
+  };
 
   if (!shell.which('git')) {
     grunt.fail.fatal('This script requires git');
     return false;
   }
   /** Convert opts.name to an array if not already. */
+  // function asArray(val) {
+  //   return val == null ? null : (Array.isArray(val) ? val : [ val ]);
+  // }
   function makeArrayOpt(opts, name) {
     if( !Array.isArray(opts[name]) ) {
       opts[name] = [ opts[name] ];
@@ -57,7 +116,6 @@ module.exports = function(grunt) {
       grunt.verbose.writeln('Running: ' + cmd);
       var result = shell.exec(cmd, {silent: true});
       if (extra.checkResultCode !== false && result.code !== 0) {
-        // grunt.log.error('Error (' + result.code + ') ' + result.output);
         grunt.fail.warn('Error (' + result.code + ') ' + result.output);
       }else{
         return result;
@@ -66,8 +124,8 @@ module.exports = function(grunt) {
   }
 
   /** Return aggregated config for a distinct tool. */
-  function getToolOpts(options, tool) {
-    var res = lodash.merge({}, options.common, options[tool]);
+  function getToolOpts(options, tooltype, toolname) {
+    var res = lodash.merge({}, options.common, options[tooltype], options[toolname]);
     // The opts._context reference can be used to pass data between tools
     res._context = options._context;
     // Make sure that --no-write is always honored
@@ -79,7 +137,7 @@ module.exports = function(grunt) {
 
   /** Call tool handler with its aggregated options. */
   function runTool(options, tooltype, toolname) {
-    var opts = getToolOpts(options, toolname);
+    var opts = getToolOpts(options, tooltype, toolname);
     var dispOpts = _.cloneDeep(opts);
 
     dispOpts._context.masterManifest = '...';
@@ -97,59 +155,22 @@ module.exports = function(grunt) {
    */
   grunt.registerMultiTask('yabs', 'Collection of tools for grunt release workflows.', function() {
 
+    // grunt.verbose.writeln("options: " + JSON.stringify(grunt.config(this.name + '.options')));
+    // grunt.fail.fatal("EXIT");
     // Use lodash.merge for deep extend
-    var options = lodash.merge({
-      common: { // options used as default for all tools
-        args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
-        verbose: !!grunt.option('verbose'),
-        enable: true,
-        noWrite: false,
-        manifests: ['package.json'], // First entry is 'master' for synchronizing
-      },
-      check: {
-        clean: undefined,
-//      allowDirty: [],
-//      isPrerelease: undefined,
-        branch: ['master']
-      },
-      bump: {
-        // bump also requires a mode
-        inc: null,            // Used instead of 'yabs:target:INC'
-        syncVersion: true,    // Only increment master manifest, then copy to secondaries
-        syncFields: [],       // Synchronize entries from master to secondaries (if exist in target)
-        space: 2,             // Used by JSON.stringify
-        updateConfig: "pkg",  // Make sure pkg.version contains new value
-      },
-      run: {
-        // Call external tasks
-        tasks: [],
-      },
-      commit: {
-        // Commit all manifest files
-        add: "package.json", // Also add these files ("." for all)
-        message: 'Bumping version to {%= version %}',
-      },
-      tag: {
-        name: 'v{%= version %}',
-        message: 'Version {%= version %}',
-      },
-      push: {
-        enable: false,
-        target: '', // e.g. 'upstream',
-        tags: true,
-      },
-      npmPublish: {
-      },
-    }, this.options, grunt.config(this.name)[this.target]);
+    var options = lodash.merge(
+      DEFAULT_OPTIONS,                           // Hard coded defaults
+      grunt.config(this.name + '.options'),      // config.yabs.options
+      grunt.config(this.name)[this.target]);     // config.yabs.WORKFLOW
+
+    // Additional args after 'yabs:target:'
+    options.common.args = grunt.util.toArray(this.args);
 
     // Normalize strings to array.
     makeArrayOpt(options.common, 'manifests');
-    makeArrayOpt(options.bump, 'syncFields');
-    makeArrayOpt(options.check, 'branch');
 
     // grunt.verbose.writeln("args:" + grunt.util.toArray(this.args));
     // grunt.verbose.writeln("cmdline options: " + grunt.option.flags());
-    // grunt.verbose.writeln("resulting options" + JSON.stringify(options));
 
     // Context object is used to pass data to downstream tools
     options._context = {};
@@ -158,10 +179,14 @@ module.exports = function(grunt) {
     options._context.origVersion = semver.valid(manifest.version);
     options._context.version = options._context.origVersion;
     options._context.masterManifest = manifest;
+    
+    // grunt.verbose.writeln("resulting options" + JSON.stringify(options));
+
     if( !options._context.version ){
       grunt.fail.fatal('Invalid version "' + manifest.version + '" in ' + options.common.manifests[0]);
     }
-    // Run the tool chain. We assume that property order *is* predictable on V8:
+
+    // Run the tool chain. We assume that property order *is* predictable in V8:
     for(var toolname in grunt.config(this.name)[this.target]){
       if( toolname === 'common' ) { continue; }
       var match = false;
@@ -174,7 +199,7 @@ module.exports = function(grunt) {
         }
       }
       if( !match ){
-        grunt.log.warn('Unsupported tool "' + toolname + '".');
+        grunt.fail.warn('Unsupported tool "' + toolname + '".');
       }
     }
 
@@ -186,6 +211,8 @@ module.exports = function(grunt) {
   tool_handlers.check = function(opts) {
     var result, valid, 
         errors = 0;
+
+    makeArrayOpt(opts, 'branch');
 
     if( opts.branch.length ){
       result = exec(opts, 'git rev-parse --abbrev-ref HEAD', { always: true });
@@ -241,7 +268,8 @@ module.exports = function(grunt) {
     var MODES = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease', 'zero'];
     var mode = opts.inc || (opts.args.length ? opts.args[0] : null);
 
-    
+    makeArrayOpt(opts, 'syncFields');
+ 
     if( !mode ) {
       grunt.fail.fatal('Please specify a mode (' + MODES.join(', ') + ').');
     }else if( ! _.contains(MODES, mode) ) {
@@ -309,15 +337,13 @@ module.exports = function(grunt) {
   };
 
   /*****************************************************************************
-   * Call external build tasks.
+   * Call grunt tasks.
    */
   tool_handlers.run = function(opts) {
-    opts.tasks.forEach(function(task){
-      grunt.log.writeln('Run task "' + task + '"...');
-      exec(opts, 'grunt ' + task);
-      // This would queue the task AFTER yabs finished:
-      // grunt.task.run(task);
-    });
+    var task = opts.tasks.join(' ');
+    grunt.log.writeln('Run task "' + task + '"...');
+    exec(opts, 'grunt ' + task);
+    grunt.log.ok('Run task "' + task + '".');
   };
 
   /*****************************************************************************
@@ -356,6 +382,9 @@ module.exports = function(grunt) {
    * Publish release to npm
    */
   tool_handlers.npmPublish = function(opts) {
+    var message = processTemplate(opts.message, opts._context);
+    // exec(opts, 'npm publish .');
+    grunt.log.ok('Published to npm.');
   };
 
 };

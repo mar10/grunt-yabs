@@ -1,11 +1,11 @@
 {
   "name": "grunt-yabs",
   "description": "Collection of tools for grunt release workflows.",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "homepage": "https://github.com/mar10/grunt-yabs",
   "author": {
     "name": "Martin Wendt",
-    "email": "mar10@wwwendt.de"
+    "url": "git://github.com/mar10/grunt-yabs.git"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,7 @@
     "bump",
     "grunt",
     "gruntplugin",
+    "npm",
     "push",
     "release",
     "tag",

@@ -41,48 +41,54 @@ module.exports = function(grunt) {
       release: {
         // Default options for all following tools
         common: {
-          manifests: ['package.json', 'testbower.json']
+          manifests: ['package.json', 'testbower.json'],
+          noWrite: true,
         },
         // The following tools are executed in order of appearance:
-        // 'check': Assert preconditons and fail otherwise
         check: {
-          clean: undefined,       // Repo must/must not contain modifications? 
-          branch: ['master'],     // Current branch must be in this list
+          clean: undefined,
+          branch: ['master'],
         },
-        // 'bump': increment manifest.version and synchronize with other JSON files.
         bump: {
-          // bump also requires a mode
-//        inc: null,              // Used instead of 'yabs:target:INC'
-          syncVersion: true,      // Only increment master manifest, then copy to secondaries
-//        space: 2,               // Used by JSON.stringify
-          updateConfig: 'pkg',    // Make sure pkg.version contains new value
+          syncVersion: true,
+          updateConfig: 'pkg',
           syncFields: ['description', 'keywords'], 
-                                  // Synchronize entries from master to secondaries 
-                                  // (if exist in target)
         },
-        // 'commit': Commit all manifest files (and optionally others)
         commit: {
-          add: 'package.json',    // Also add these files ("." for all)
+          add: 'package.json',
           message: 'Bumping version to {%= version %}',
         },
-        // 'tag': Create a tag
         tag: {
           name: 'v{%= version %}',
           message: 'Version {%= version %}',
         },
-        // 'run': Run arbitrary grunt tasks (must also be defined in this Gruntfile)
         run: {
-          tasks: ['jshint']
+          tasks: ['jshint', 'jshint']
         },
-        // 'push': push changes and tags
         push: {
-          target: '',             // e.g. 'upstream',
-          tags: true,             // Also 'push --tags'
+          target: '',
+          tags: true,
+        },
+        npmPublish: {
+          message: 'Released {%= version %}',
         },
         // Tools may be executed multiple times (simply append '_something')
         bump_develop: {
           inc: 'prepatch',
         }
+      },
+      make_patch: {
+        common: { // defaults for all tools
+          manifests: ['package.json', 'testbower.json'],
+          noWrite: true,
+        },
+        check: { clean: true, branch: ['master'] },
+        bump: {},
+        commit: {},
+        tag: {},
+        run: {tasks: ['jshint'] },
+        push: {},
+        bump_develop: { inc: 'prepatch' }
       }
     },
 
