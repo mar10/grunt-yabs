@@ -42,7 +42,7 @@ module.exports = function(grunt) {
         // Default options for all following tools
         common: {
           manifests: ['package.json', 'testbower.json'],
-          noWrite: true,
+          // noWrite: true,
         },
         // The following tools are executed in order of appearance:
         check: {

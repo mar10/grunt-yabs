@@ -32,7 +32,7 @@ module.exports = function(grunt) {
     common: { // options used as default for all tools
       args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
       verbose: !!grunt.option('verbose'),
-      enable: true,
+      enable: true,             // 
       noWrite: false,           // true enables dry-run
       manifests: ['package.json'], // First entry is 'master' for synchronizing
     },
@@ -73,7 +73,7 @@ module.exports = function(grunt) {
     push: {
       enable: false,
       target: '',               // e.g. 'upstream',
-      tags: false,              // Also 'push --tags'
+      tags: true,               // Also 'push --tags'
     },
     // 'npmPublish': Submit to npm repository
     npmPublish: {
