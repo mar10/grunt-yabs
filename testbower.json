@@ -1,7 +1,7 @@
 {
   "name": "grunt-yabs",
   "description": "Collection of tools for grunt release workflows.",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/mar10/grunt-releasetools",
   "author": {
     "name": "Martin Wendt",
@@ -24,7 +24,11 @@
     "bump",
     "grunt",
     "gruntplugin",
-    "release"
+    "npm",
+    "push",
+    "release",
+    "tag",
+    "workflow"
   ],
   "devDependencies": {
     "grunt-contrib-jshint": "^0.9.2",
