@@ -44,6 +44,7 @@ module.exports = function(grunt) {
         push: {},
         npmPublish: {},
         bump_develop: { inc: 'prepatch' }
+        commit_develop: { message: 'Bump for prerelease ({%= version %})' },
       }
     },
 

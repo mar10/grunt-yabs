@@ -1,8 +1,8 @@
-# grunt-yabs [![NPM version](https://badge.fury.io/js/grunt-yabs.png)](http://badge.fury.io/js/grunt-yabs) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
-
-[![Npm Downloads](https://nodei.co/npm/grunt-yabs.png?downloads=true&stars=true)](https://nodei.co/npm/grunt-yabs.png?downloads=true&stars=true)
+# grunt-yabs [![NPM version](https://badge.fury.io/js/grunt-yabs.png)](#) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
 > Collection of tools for grunt release workflows.
+
+[![Npm Downloads](https://nodei.co/npm/grunt-yabs.png?downloads=true&stars=true)](https://www.npmjs.org/package/grunt-yabs)
 
 <b>Y</b>et <b>A</b>nother <b>B</b>uild <b>S</b>cript. *&lt;sigh>, why*? you ask...<br>
 Because
@@ -130,18 +130,18 @@ grunt.initConfig({
   yabs: {
     release: {
       common: { // defaults for all tools
-        manifests: ['package.json', 'testbower.json'],
-        noWrite: true, // default to dry-run mode (remove this, when you are sure)
+        manifests: ['package.json', 'bower.json'],
       },
       // The following tools are run in order:
       check: { clean: true, branch: ['master'] },
-      bump: {}, // 'bump' also uses the increment mode that was passed as `yabs:release:MODE`
+      bump: {}, // 'bump' also uses the increment mode `yabs:release:MODE`
       run: {tasks: ['compile', 'jshint:dist'] },
       commit: {},
       tag: {},
       push: {},
       // Tools may be executed multiple times (simply append '_something')
       bump_develop: { inc: 'prepatch' },
+      commit_develop: { message: 'Bump for prerelease ({%= version %})' },
     }
   },
 });
@@ -192,7 +192,7 @@ grunt.initConfig({
         syncFields: [],           // Synchronize entries from master to 
                                   // secondaries (if field exists)
         space: 2,                 // Indentation used when writing JSON files
-        updateConfig: "pkg",      // Make sure pkg.version contains new value
+        updateConfig: 'pkg',      // Make sure pkg.version contains new value
       },
       // 'run': Run arbitrary grunt tasks
       run: {
