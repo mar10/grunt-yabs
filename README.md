@@ -173,8 +173,8 @@ grunt.initConfig({
       // Options used as default for all tools
       common: {
         enable: true,
-        noWrite: false,              // `true` enables dry-run (`--no-write` 
-                                     // is always honored)
+        noWrite: false,              // `true` enables dry-run (note: 
+                                     // `--no-write` is always honored)
         manifests: ['package.json'], // First entry is master for synchronizing
       },
 

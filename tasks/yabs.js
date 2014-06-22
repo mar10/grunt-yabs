@@ -371,7 +371,7 @@ module.exports = function(grunt) {
     }else{
       exec(opts, 'git push ' + opts.target);
     }
-    grunt.log.ok('Pushed ' + opts.target + ' (' + (opts.tags ? 'with --tags' : 'no tags') + ').');
+    grunt.log.ok('Pushed ' + opts.target + ' (' + (opts.tags ? 'with tags' : 'no tags') + ').');
   };
 
   /*****************************************************************************
