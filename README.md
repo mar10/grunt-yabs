@@ -202,6 +202,7 @@ grunt.initConfig({
       // 'run': Run arbitrary grunt tasks
       run: {
         tasks: [] // (Tasks must be defined in the current Gruntfile)
+        silent: false,          // `true`: suppress output
       },
       // 'commit': Commit all manifest files (and optionally others)
       commit: {

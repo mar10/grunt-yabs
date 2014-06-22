@@ -58,6 +58,7 @@ module.exports = function(grunt) {
     // 'run': Run arbitrary grunt tasks (must be defined in the current Gruntfile)
     run: {
       tasks: [],
+      silent: false,            // `true`: suppress output
     },
     // 'commit': Commit all manifest files (and optionally others)
     commit: {
@@ -109,11 +110,12 @@ module.exports = function(grunt) {
   /** Execute shell command. */
   function exec(opts, cmd, extra) {
     extra = extra || {};
+    var silent = (extra.silent !== false); // Silent, unless explicitly passed `false`
     if ( opts.noWrite && extra.always !== true) {
-      grunt.log.writeln('Not actually running: ' + cmd);
+      grunt.log.writeln('DRY-RUN: would exec: ' + cmd);
     } else {
       grunt.verbose.writeln('Running: ' + cmd);
-      var result = shell.exec(cmd, {silent: true});
+      var result = shell.exec(cmd, {silent: silent});
       if (extra.checkResultCode !== false && result.code !== 0) {
         grunt.fail.warn('Error (' + result.code + ') ' + result.output);
       }else{
@@ -335,7 +337,7 @@ module.exports = function(grunt) {
   tool_handlers.run = function(opts) {
     var task = opts.tasks.join(' ');
     grunt.log.writeln('Run task "' + task + '"...');
-    exec(opts, 'grunt ' + task);
+    exec(opts, 'grunt ' + task, {silent: opts.silent});
     grunt.log.ok('Run task "' + task + '".');
   };
 
