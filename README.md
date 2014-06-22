@@ -1,4 +1,4 @@
-# grunt-yabs [![NPM version](https://badge.fury.io/js/grunt-yabs.png)](#) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
+# grunt-yabs [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
 > Collection of tools for grunt release workflows.
 
@@ -17,6 +17,8 @@ Because
 
 
 ## Status
+[![NPM version](https://badge.fury.io/js/grunt-yabs.png)](#)
+
 This is Work In Progress and barely tested. **Definitely not fit for production yet!**
 Let me know if you find bugs or have suggestions.
 
@@ -180,19 +182,19 @@ grunt.initConfig({
 
       // 'check': Assert preconditons and fail otherwise
       check: {
-        clean: undefined,         // Repo must/must not contain modifications? 
-        branch: ['master'],       // Current branch must be in this list
+        clean: undefined,       // Repo must/must not contain modifications? 
+        branch: ['master'],     // Current branch must be in this list
       },
       // 'bump': increment manifest.version and synchronize other JSON files.
       bump: {
         // bump also requires a mode argmuent (yabs:target:MODE)
-        inc: null,                // Override 'yabs:target:MODE'
-        syncVersion: true,        // Only increment master manifest, then copy 
-                                  // version to secondaries
-        syncFields: [],           // Synchronize entries from master to 
-                                  // secondaries (if field exists)
-        space: 2,                 // Indentation used when writing JSON files
-        updateConfig: 'pkg',      // Make sure pkg.version contains new value
+        inc: null,              // Override 'yabs:target:MODE'
+        syncVersion: true,      // Only increment master manifest, then copy 
+                                // version to secondaries
+        syncFields: [],         // Synchronize entries from master to 
+                                // secondaries (if field exists)
+        space: 2,               // Indentation used when writing JSON files
+        updateConfig: 'pkg',    // Make sure pkg.version contains new value
       },
       // 'run': Run arbitrary grunt tasks
       run: {
@@ -200,7 +202,7 @@ grunt.initConfig({
       },
       // 'commit': Commit all manifest files (and optionally others)
       commit: {
-        add: "package.json",      // Also add these files ("." for all)
+        add: "package.json",    // Also add these files ("." for all)
         message: 'Bumping version to {%= version %}',
       },
       // 'tag': Create a tag
@@ -210,8 +212,9 @@ grunt.initConfig({
       },
       // 'push': push changes and tags
       push: {
-        target: '',               // e.g. 'upstream',
-        tags: false,              // Also 'push --tags'
+        target: '',             // E.g. 'upstream'
+        tags: false,            // Also push tags
+        useFollowTags: true,    // Use `--folow-tags` instead of `&& push --tags`
       },
       // 'npmPublish': Submit to npm repository
       npmPublish: {
@@ -227,4 +230,4 @@ Add unit tests for any new or changed functionality. Lint and test your code usi
 [Grunt](http://gruntjs.com/).
 
 ## Release History
-_(Nothing yet)_
+* 2014-06-20   v0.0.0   Work in progress, use at your own risk.

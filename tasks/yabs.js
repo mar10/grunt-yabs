@@ -71,14 +71,13 @@ module.exports = function(grunt) {
     },
     // 'push': push changes and tags
     push: {
-      // enable: false,
-      target: '',               // e.g. 'upstream',
-      tags: true,               // Also 'push --tags'
+      target: '',               // E.g. 'upstream'
+      tags: false,              // Also push tags
+      useFollowTags: true,      // Use `--folow-tags` instead of `&& push --tags`
     },
     // 'npmPublish': Submit to npm repository
     npmPublish: {
-      // enable: false,
-//      tag: null,
+//    tag: null,
       message: 'Released {%= version %}',
     },
   };
@@ -142,10 +141,10 @@ module.exports = function(grunt) {
 
     dispOpts._context.masterManifest = '...';
     if( opts.enable ) {
-      grunt.verbose.writeln("Running '" + toolname + "' tool with " + JSON.stringify(dispOpts) + "...");
+      grunt.verbose.writeln('Running "' + toolname + '" tool with ' + JSON.stringify(dispOpts) + '...');
       tool_handlers[tooltype](opts);
     }else{
-      grunt.verbose.writeln("'" + toolname + "' tool is disabled.");
+      grunt.verbose.writeln('"' + toolname + '" tool is disabled.');
     }
   }
 
@@ -155,8 +154,6 @@ module.exports = function(grunt) {
    */
   grunt.registerMultiTask('yabs', 'Collection of tools for grunt release workflows.', function() {
 
-    // grunt.verbose.writeln("options: " + JSON.stringify(grunt.config(this.name + '.options')));
-    // grunt.fail.fatal("EXIT");
     // Use lodash.merge for deep extend
     var options = lodash.merge(
       DEFAULT_OPTIONS,                           // Hard coded defaults
@@ -202,7 +199,9 @@ module.exports = function(grunt) {
         grunt.fail.warn('Unsupported tool "' + toolname + '".');
       }
     }
-
+    if( grunt.option('no-write') ) {
+      grunt.log.writeln('*** DRY-RUN mode: No bits were harmed during this run. ***');
+    }
   });
 
   /*****************************************************************************
@@ -225,10 +224,10 @@ module.exports = function(grunt) {
         }
       });
       if( !valid ) {
-        grunt.log.error("Current branch '" + branch + "' not in allowed list: '" + opts.branch.join("', '") + "'.");
+        grunt.log.error('Current branch "' + branch + '" not in allowed list: "' + opts.branch.join('", "') + '".');
         errors += 1;
       }else{
-        grunt.log.ok("Current branch '" + branch + "' in allowed list: '" + opts.branch.join("', '") + "'.");
+        grunt.log.ok('Current branch "' + branch + '" in allowed list: "' + opts.branch.join('", "') + '".');
       }
     }
     if( typeof opts.clean === 'boolean' ){
@@ -239,24 +238,17 @@ module.exports = function(grunt) {
             always: true 
           }).code === 0;
       if( flag !== isClean ) {
-        grunt.log.error("Repository has " + (isClean ? "no " : "") + "staged changes.");
+        grunt.log.error('Repository has ' + (isClean ? 'no ' : '') + 'staged changes.');
         errors += 1;
       }else{
-        grunt.log.ok("Repository is " + (isClean ? "" : "not ") + "clean.");
+        grunt.log.ok('Repository is ' + (isClean ? '' : 'not ') + 'clean.');
       }
     }
-    if( typeof opts.isPrerelease === 'boolean' ){
-      // var flag = !!opts.clean,
-      //     isPre = exec(opts, 'git diff-index --quiet HEAD --', false).code === 0;
-      // if( flag !== isClean ) {
-      //   grunt.fail.fatal("Repository has " + (isClean ? "no " : "") + "staged changes.");
-      // }else{
-      //   grunt.log.ok("Repository is " + (isClean ? "" : "not ") + "clean.");
-      // }
-    }
+    // if( typeof opts.isPrerelease === 'boolean' ){
+    // }
     // doesn't work(?):
     // grunt.log.writeln('EC: ' + grunt.task.errorCount); 
-    if ( errors  > 0) {
+    if ( errors  > 0 ) {
       grunt.fail.warn(errors + grunt.util.pluralize(errors, ' check failed./checks failed.'))  ;
     }
   };
@@ -369,11 +361,15 @@ module.exports = function(grunt) {
    * Push commits and tags.
    */
   tool_handlers.push = function(opts) {
-    var dry = ''; // ' --dry-run ';
     if( opts.tags ) {
-      exec(opts, 'git push ' + opts.target + dry + ' && git push ' + opts.target + ' --tags' + dry);
+      if( opts.useFollowTags ) {
+        // Pushing in one command prevents Travis from starting two jobs (requires git 1.8.3+)
+        exec(opts, 'git push ' + opts.target + ' --follow-tags');
+      }else{
+        exec(opts, 'git push ' + opts.target + ' && git push ' + opts.target + ' --tags');
+      }
     }else{
-      exec(opts, 'git push ' + opts.target + dry);
+      exec(opts, 'git push ' + opts.target);
     }
     grunt.log.ok('Pushed ' + opts.target + ' (' + (opts.tags ? 'with --tags' : 'no tags') + ').');
   };

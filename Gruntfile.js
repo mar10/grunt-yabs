@@ -41,9 +41,9 @@ module.exports = function(grunt) {
         commit: {},
         tag: {},
         run: {tasks: ['jshint'] },
-        push: {},
+        push: { tags: true },
         npmPublish: {},
-        bump_develop: { inc: 'prepatch' }
+        bump_develop: { inc: 'prepatch' },
         commit_develop: { message: 'Bump for prerelease ({%= version %})' },
       }
     },
