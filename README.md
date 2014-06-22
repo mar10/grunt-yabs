@@ -1,8 +1,10 @@
-# grunt-yabs
+# grunt-yabs [![NPM version](https://badge.fury.io/js/grunt-yabs.png)](http://badge.fury.io/js/grunt-yabs) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
+
+[![Npm Downloads](https://nodei.co/npm/grunt-yabs.png?downloads=true&stars=true)](https://nodei.co/npm/grunt-yabs.png?downloads=true&stars=true)
 
 > Collection of tools for grunt release workflows.
 
-Yet Another Build Script, &lt;sigh>, *why*? you ask...<br>
+<b>Y</b>et <b>A</b>nother <b>B</b>uild <b>S</b>cript. *&lt;sigh>, why*? you ask...<br>
 Because
 - It comes with a set of useful tools like 'check', 'bump', 'commit', 'tag', 
   'push', 'run', 'npmPublish', ...
@@ -12,6 +14,7 @@ Because
 - And mainly because it is *fun*. 
   [Join the project](https://github.com/mar10/grunt-yabs/blob/master/tasks/yabs.js) 
   if you like.
+
 
 ## Status
 This is Work In Progress and barely tested. **Definitely not fit for production yet!**
@@ -30,7 +33,8 @@ If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out th
 npm install grunt-yabs --save-dev
 ```
 
-Once the plugin has been installed, it may be enabled inside your Gruntfile with this line of JavaScript:
+Once the plugin has been installed, it may be enabled inside your Gruntfile with 
+this line of JavaScript:
 
 ```js
 grunt.loadNpmTasks('grunt-yabs');
@@ -56,7 +60,6 @@ worflow definition right:
 $ grunt yabs:myworkflow:patch --no-write
 ```
 If something goes wrong, increase the debug level to investigate:
-worflow definition right:
 ```shell
 $ grunt yabs:myworkflow:patch --no-write --vebose
 ```
@@ -70,20 +73,39 @@ passed into `grunt.initConfig()`.
 ```js
 grunt.initConfig({
   yabs: {
+    options: {
+      // Common default options for all targets (i.e. workflows)
+      common: { 
+        // Defaults for all tools in all workflows may go here
+      },
+      check: {
+        // For example 'check' should always use this options as default...
+      },
+
     workflow_1: {
       common: {
         // Default options for all tools in this workflow
       },
       check: { // The presence of this entry triggers the 'check' tool
-        // Additional options for the 'check' tool
+        // Specific options for the 'check' tool
       },
       // ... more tools may be defined here ...
+      // The `run` tool executes grunt tasks 
+      run: {tasks: ['compile', 'jshint:dist'] },
+      // Tools may be executed multiple times (simply append '_something')
+      chheck_develop: { ... },
     },
+
     workflow_2: {
-      // we can define more than one yabs target (i.e. workflow)
+      // We can define more than one yabs target
     },
   },
 });
+```
+
+The above workflow is triggered like this:
+```shell
+$ grunt yabs:workflow_1
 ```
 
 
@@ -101,7 +123,7 @@ TODO: more options here...
 ### Usage Examples
 
 #### A Simple Workflow
-A simple workflow may look like this
+A simple workflow definition may look like this:
 
 ```js
 grunt.initConfig({
@@ -111,8 +133,9 @@ grunt.initConfig({
         manifests: ['package.json', 'testbower.json'],
         noWrite: true, // default to dry-run mode (remove this, when you are sure)
       },
+      // The following tools are run in order:
       check: { clean: true, branch: ['master'] },
-      bump: {}, // 'bump' uses the mode that was passed as `yabs:release:MODE`
+      bump: {}, // 'bump' also uses the increment mode that was passed as `yabs:release:MODE`
       run: {tasks: ['compile', 'jshint:dist'] },
       commit: {},
       tag: {},
@@ -123,7 +146,7 @@ grunt.initConfig({
   },
 });
 ```
-Use like
+The above workflow is triggered like this:
 ```shell
 $ grunt yabs:release:patch
 ```
@@ -135,16 +158,22 @@ Available tools and their default options:
 grunt.initConfig({
   yabs: {
     options: {
-      // common default options for all targets (i.e. workflows)
+      // Common default options for all targets (i.e. workflows)
+      common: { 
+        // Defaults for all tools in all workflows may go here
+      },
+      bump: {
+        // For example 'bump' should always use this options as default...
+      },
     },
     // Define a workflow named 'release':
     release: {
-      common: { // options used as default for all tools
-        args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
-        verbose: !!grunt.option('verbose'),
+      // Options used as default for all tools
+      common: {
         enable: true,
-        noWrite: false,           // true enables dry-run
-        manifests: ['package.json'], // First entry is 'master' for synchronizing
+        noWrite: false,              // `true` enables dry-run (`--no-write` 
+                                     // is always honored)
+        manifests: ['package.json'], // First entry is master for synchronizing
       },
 
       // The following tools are executed in order of appearance:
@@ -154,18 +183,20 @@ grunt.initConfig({
         clean: undefined,         // Repo must/must not contain modifications? 
         branch: ['master'],       // Current branch must be in this list
       },
-      // 'bump': increment manifest.version and synchronize with other JSON files.
+      // 'bump': increment manifest.version and synchronize other JSON files.
       bump: {
         // bump also requires a mode argmuent (yabs:target:MODE)
-        inc: null,                // Used instead of 'yabs:target:MODE'
-        syncVersion: true,        // Only increment master manifest, then copy version to secondaries
-        syncFields: [],           // Synchronize entries from master to secondaries (if field exists)
-        space: 2,                 // Used by JSON.stringify when files are written
+        inc: null,                // Override 'yabs:target:MODE'
+        syncVersion: true,        // Only increment master manifest, then copy 
+                                  // version to secondaries
+        syncFields: [],           // Synchronize entries from master to 
+                                  // secondaries (if field exists)
+        space: 2,                 // Indentation used when writing JSON files
         updateConfig: "pkg",      // Make sure pkg.version contains new value
       },
-      // 'run': Run arbitrary grunt tasks (must be defined in the current Gruntfile)
+      // 'run': Run arbitrary grunt tasks
       run: {
-        tasks: [],
+        tasks: [] // (Tasks must be defined in the current Gruntfile)
       },
       // 'commit': Commit all manifest files (and optionally others)
       commit: {
@@ -191,7 +222,9 @@ grunt.initConfig({
 ```
 
 ## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
+In lieu of a formal styleguide, take care to maintain the existing coding style. 
+Add unit tests for any new or changed functionality. Lint and test your code using 
+[Grunt](http://gruntjs.com/).
 
 ## Release History
 _(Nothing yet)_
