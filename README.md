@@ -83,6 +83,7 @@ grunt.initConfig({
       check: {
         // For example 'check' should always use this options as default...
       },
+    },
 
     workflow_1: {
       common: {
@@ -120,11 +121,12 @@ Default value: `undefined`
 Set to `true` or `false` to assert the repository has/has not uncommited changes.
 
 TODO: more options here...
+For now see section "Available Options" below.
 
 
 ### Usage Examples
 
-#### A Simple Workflow
+#### A Plain Sample Workflow
 A simple workflow definition may look like this:
 
 ```js
@@ -138,7 +140,7 @@ grunt.initConfig({
       check: { clean: true, branch: ['master'] },
       bump: {}, // 'bump' also uses the increment mode `yabs:release:MODE`
       run: {tasks: ['compile', 'jshint:dist'] },
-      commit: {},
+      commit: { add: '.' },
       tag: {},
       push: { tags: true },
       // Tools may be executed multiple times (simply append '_something')

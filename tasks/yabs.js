@@ -344,8 +344,15 @@ module.exports = function(grunt) {
    */
   tool_handlers.commit = function(opts) {
     var message = processTemplate(opts.message, opts._context);
-    exec(opts, 'git commit -m "' + message + '" "' + opts.manifests.join('" "') + '"');
-    grunt.log.ok('Commited "' + message + '": ' + opts.manifests.join(', '));
+    makeArrayOpt(opts, 'add');
+    if( opts.add.length ){
+      exec(opts, 'git add ' + opts.add.join(' '));
+      exec(opts, 'git commit -m "' + message + '"');
+      grunt.log.ok('Added and commited "' + message + '": ' + opts.add.join(', '));
+    }else{
+      exec(opts, 'git commit -m "' + message + '" "' + opts.manifests.join('" "') + '"');
+      grunt.log.ok('Commited "' + message + '": ' + opts.manifests.join(', '));
+    }
   };
 
   /*****************************************************************************
