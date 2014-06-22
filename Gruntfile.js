@@ -33,54 +33,8 @@ module.exports = function(grunt) {
 
     // Options for the 'yabs' task.
     yabs: {
-      options: {
-        // common default options for all targets (i.e. workflows)
-      },
-      // Define a workflow named 'release'.
-      // (Run like 'grunt yabs:release:patch')
       release: {
-        // Default options for all following tools
-        common: {
-          manifests: ['package.json', 'testbower.json'],
-          // noWrite: true,
-        },
-        // The following tools are executed in order of appearance:
-        check: {
-          clean: undefined,
-          branch: ['master'],
-        },
-        bump: {
-          syncVersion: true,
-          updateConfig: 'pkg',
-          syncFields: ['description', 'keywords'], 
-        },
-        commit: {
-          add: 'package.json',
-          message: 'Bumping version to {%= version %}',
-        },
-        tag: {
-          name: 'v{%= version %}',
-          message: 'Version {%= version %}',
-        },
-        run: {
-          tasks: ['jshint', 'jshint']
-        },
-        push: {
-          target: '',
-          tags: true,
-        },
-        npmPublish: {
-          message: 'Released {%= version %}',
-        },
-        // Tools may be executed multiple times (simply append '_something')
-        bump_develop: {
-          inc: 'prepatch',
-        }
-      },
-      make_patch: {
         common: { // defaults for all tools
-          manifests: ['package.json', 'testbower.json'],
-          noWrite: true,
         },
         check: { clean: true, branch: ['master'] },
         bump: {},
@@ -88,6 +42,7 @@ module.exports = function(grunt) {
         tag: {},
         run: {tasks: ['jshint'] },
         push: {},
+        npmPublish: {},
         bump_develop: { inc: 'prepatch' }
       }
     },

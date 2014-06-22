@@ -71,13 +71,13 @@ module.exports = function(grunt) {
     },
     // 'push': push changes and tags
     push: {
-      enable: false,
+      // enable: false,
       target: '',               // e.g. 'upstream',
       tags: true,               // Also 'push --tags'
     },
     // 'npmPublish': Submit to npm repository
     npmPublish: {
-      enable: false,
+      // enable: false,
 //      tag: null,
       message: 'Released {%= version %}',
     },
@@ -369,7 +369,7 @@ module.exports = function(grunt) {
    * Push commits and tags.
    */
   tool_handlers.push = function(opts) {
-    var dry = ' --dry-run ';
+    var dry = ''; // ' --dry-run ';
     if( opts.tags ) {
       exec(opts, 'git push ' + opts.target + dry + ' && git push ' + opts.target + ' --tags' + dry);
     }else{
@@ -383,7 +383,7 @@ module.exports = function(grunt) {
    */
   tool_handlers.npmPublish = function(opts) {
     var message = processTemplate(opts.message, opts._context);
-    // exec(opts, 'npm publish .');
+    exec(opts, 'npm publish .');
     grunt.log.ok('Published to npm.');
   };
 
