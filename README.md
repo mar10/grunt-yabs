@@ -140,10 +140,11 @@ grunt.initConfig({
       run: {tasks: ['compile', 'jshint:dist'] },
       commit: {},
       tag: {},
-      push: {},
+      push: { tags: true },
       // Tools may be executed multiple times (simply append '_something')
       bump_develop: { inc: 'prepatch' },
-      commit_develop: { message: 'Bump for prerelease ({%= version %})' },
+      commit_develop: { message: 'Bump prerelease ({%= version %}) [ci skip]' },
+      push_develop: {},
     }
   },
 });

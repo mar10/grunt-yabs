@@ -124,7 +124,7 @@ module.exports = function(grunt) {
 
   /** Return aggregated config for a distinct tool. */
   function getToolOpts(options, tooltype, toolname) {
-    var res = lodash.merge({}, options.common, options[tooltype], options[toolname]);
+    var res = lodash.merge({}, options.common, DEFAULT_OPTIONS[tooltype], options[toolname]);
     // The opts._context reference can be used to pass data between tools
     res._context = options._context;
     // Make sure that --no-write is always honored
@@ -156,6 +156,7 @@ module.exports = function(grunt) {
 
     // Use lodash.merge for deep extend
     var options = lodash.merge(
+      {},
       DEFAULT_OPTIONS,                           // Hard coded defaults
       grunt.config(this.name + '.options'),      // config.yabs.options
       grunt.config(this.name)[this.target]);     // config.yabs.WORKFLOW
