@@ -140,7 +140,7 @@ grunt.initConfig({
       check: { clean: true, branch: ['master'] },
       bump: {}, // 'bump' also uses the increment mode `yabs:release:MODE`
       run: {tasks: ['compile', 'jshint:dist'] },
-      commit: { add: '.' },
+      commit: {},
       tag: {},
       push: { tags: true },
       // Tools may be executed multiple times (simply append '_something')
@@ -206,7 +206,8 @@ grunt.initConfig({
       },
       // 'commit': Commit all manifest files (and optionally others)
       commit: {
-        add: "package.json",    // Also add these files ("." for all)
+        add: [],                // Also `git add` these files ('.' for all)
+        addKnown: true,         // Commit with -a flag
         message: 'Bumping version to {%= version %}',
       },
       // 'tag': Create a tag

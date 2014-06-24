@@ -53,7 +53,7 @@ module.exports = function(grunt) {
       syncVersion: true,        // Only increment master manifest, then copy version to secondaries
       syncFields: [],           // Synchronize entries from master to secondaries (if field exists)
       space: 2,                 // Used by JSON.stringify when files are written
-      updateConfig: "pkg",      // Make sure pkg.version contains new value
+      updateConfig: 'pkg',      // Make sure pkg.version contains new value
     },
     // 'run': Run arbitrary grunt tasks (must be defined in the current Gruntfile)
     run: {
@@ -62,7 +62,8 @@ module.exports = function(grunt) {
     },
     // 'commit': Commit all manifest files (and optionally others)
     commit: {
-      add: "package.json",      // Also add these files ("." for all)
+      add: [],                  // Also `git add` these files ('.' for all)
+      addKnown: true,           // Commit with -a flag
       message: 'Bumping version to {%= version %}',
     },
     // 'tag': Create a tag
@@ -339,16 +340,16 @@ module.exports = function(grunt) {
    * Add and commit files.
    */
   tool_handlers.commit = function(opts, data) {
-    var message = processTemplate(opts.message, data);
     makeArrayOpt(opts, 'add');
     if( opts.add.length ){
       exec(opts, 'git add ' + opts.add.join(' '));
-      exec(opts, 'git commit -m "' + message + '"');
-      grunt.log.ok('Added and commited "' + message + '": ' + opts.add.join(', '));
-    }else{
-      exec(opts, 'git commit -m "' + message + '" "' + opts.manifests.join('" "') + '"');
-      grunt.log.ok('Commited "' + message + '": ' + opts.manifests.join(', '));
+      grunt.log.ok('Added files for commit: ' + opts.add.join(', '));
     }
+    var message = processTemplate(opts.message, data);
+    var commitArgs = opts.addKnown ? '-am' : '-m';
+    exec(opts, 'git commit ' + commitArgs + ' "' + message + '"');
+    // exec(opts, 'git commit ' + commitArgs + ' "' + message + '" "' + opts.manifests.join('" "') + '"');
+    grunt.log.ok('Commited "' + message + '"');
   };
 
   /*****************************************************************************
