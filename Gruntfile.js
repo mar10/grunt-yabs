@@ -33,6 +33,11 @@ module.exports = function(grunt) {
 
     // Options for the 'yabs' task.
     yabs: {
+      // options: {
+      //   common: { // defaults for all tools
+      //     manifests: ['package.json', 'testbower.json'],
+      //   },
+      // },
       release: {
         common: { // defaults for all tools
         },

@@ -107,6 +107,14 @@ module.exports = function(grunt) {
     });
   }
 
+  /***/ 
+  function readJsonCached(cache, filepath, reload){
+    if( reload || !cache[filepath] ) {
+      cache[filepath] = grunt.file.readJSON(filepath);
+    }
+    return cache[filepath];
+  }
+
   /** Execute shell command. */
   function exec(opts, cmd, extra) {
     extra = extra || {};
@@ -124,27 +132,18 @@ module.exports = function(grunt) {
     }
   }
 
-  /** Return aggregated config for a distinct tool. */
-  function getToolOpts(options, tooltype, toolname) {
-    var res = lodash.merge({}, options.common, DEFAULT_OPTIONS[tooltype], options[toolname]);
-    // The opts._context reference can be used to pass data between tools
-    res._context = options._context;
-    // Make sure that --no-write is always honored
-    if( grunt.option('no-write') ) {
-      res.noWrite = true;
-    }
-    return res;
-  }
-
   /** Call tool handler with its aggregated options. */
-  function runTool(options, tooltype, toolname) {
-    var opts = getToolOpts(options, tooltype, toolname);
-    var dispOpts = _.cloneDeep(opts);
+  function runTool(tooltype, toolname, toolOptions, data) {
+    // var opts = getToolOpts(taskOptions, data, tooltype, toolname);
+    var dispData = _.cloneDeep(data);
 
-    dispOpts._context.masterManifest = '...';
-    if( opts.enable ) {
-      grunt.verbose.writeln('Running "' + toolname + '" tool with ' + JSON.stringify(dispOpts) + '...');
-      tool_handlers[tooltype](opts);
+    // dispData.masterManifest = '...';
+    if( toolOptions.enable ) {
+      grunt.verbose.writeln('Running "' + toolname + 
+        '" tool with opts=' + JSON.stringify(toolOptions) + 
+        ', data=' + JSON.stringify(dispData) + '...');
+      tool_handlers[tooltype](toolOptions, data);
+      data.completedTools.push(toolname);
     }else{
       grunt.verbose.writeln('"' + toolname + '" tool is disabled.');
     }
@@ -156,50 +155,48 @@ module.exports = function(grunt) {
    */
   grunt.registerMultiTask('yabs', 'Collection of tools for grunt release workflows.', function() {
 
-    // Use lodash.merge for deep extend
-    var options = lodash.merge(
-      {},
-      DEFAULT_OPTIONS,                           // Hard coded defaults
-      grunt.config(this.name + '.options'),      // config.yabs.options
-      grunt.config(this.name)[this.target]);     // config.yabs.WORKFLOW
+    var taskOpts = grunt.config(this.name);   // config.yabs
+    var workflowOpts = taskOpts[this.target]; // config.yabs.WORKFLOW
+    // grunt.verbose.writeln("resulting options" + JSON.stringify(workflowOpts));
 
-    // Additional args after 'yabs:target:'
-    options.common.args = grunt.util.toArray(this.args);
-
-    // Normalize strings to array.
-    makeArrayOpt(options.common, 'manifests');
-
-    // grunt.verbose.writeln("args:" + grunt.util.toArray(this.args));
-    // grunt.verbose.writeln("cmdline options: " + grunt.option.flags());
-
-    // Context object is used to pass data to downstream tools
-    options._context = {};
-
-    var manifest = grunt.file.readJSON(options.common.manifests[0]);
-    options._context.origVersion = semver.valid(manifest.version);
-    options._context.version = options._context.origVersion;
-    options._context.masterManifest = manifest;
-    
-    // grunt.verbose.writeln("resulting options" + JSON.stringify(options));
-
-    if( !options._context.version ){
-      grunt.fail.fatal('Invalid version "' + manifest.version + '" in ' + options.common.manifests[0]);
-    }
-
+    // The data object is used to pass data to downstream tools
+    var data = {
+      args: grunt.util.toArray(this.args),
+      manifestCache: {},
+      completedTools: [],
+      origVersion: null,
+      version: null,
+    };
     // Run the tool chain. We assume that property order *is* predictable in V8:
-    for(var toolname in grunt.config(this.name)[this.target]){
+    for(var toolname in workflowOpts){
       if( toolname === 'common' ) { continue; }
       var match = false;
       for(var i=0; i<KNOWN_TOOLS.length; i++){
         var tooltype = KNOWN_TOOLS[i];
         if(toolname === tooltype || toolname.indexOf(tooltype + '_') === 0 ){
           match = true;
-          runTool(options, tooltype, toolname);
-          break;
+
+          var toolOptions = lodash.merge(
+            {}, // copy, so we don't modify the original
+            DEFAULT_OPTIONS.common,                           // Hard coded defaults
+            DEFAULT_OPTIONS[tooltype], 
+            grunt.config([this.name, 'options', 'common']),   // config.yabs.options.common
+            grunt.config([this.name, 'options', tooltype]),   // config.yabs.options.TOOLTYPE
+            grunt.config([this.name, this.target, 'common']), // config.yabs.WORKFLOW.common
+            grunt.config([this.name, this.target, toolname])  // config.yabs.WORKFLOW.TOOLNAME
+            );
+          
+          // Make sure that --no-write is always honored
+          if( grunt.option('no-write') ) {
+            toolOptions.noWrite = true;
+          }
+
+          runTool(tooltype, toolname, toolOptions, data);
+          break; // type was found, now proceed with next tool
         }
       }
       if( !match ){
-        grunt.fail.warn('Unsupported tool "' + toolname + '".');
+        grunt.fail.warn('Tool "' + toolname + '" is not of a known type (' + KNOWN_TOOLS.join(', ') + ').');
       }
     }
     if( grunt.option('no-write') ) {
@@ -210,7 +207,7 @@ module.exports = function(grunt) {
   /*****************************************************************************
    * Assert preconditions and fail otherwise.
    */
-  tool_handlers.check = function(opts) {
+  tool_handlers.check = function(opts, data) {
     var result, valid, 
         errors = 0;
 
@@ -259,9 +256,9 @@ module.exports = function(grunt) {
   /*****************************************************************************
    * Bump version on one or more manifests
    */
-  tool_handlers.bump = function(opts) {
+  tool_handlers.bump = function(opts, data) {
     var MODES = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease', 'zero'];
-    var mode = opts.inc || (opts.args.length ? opts.args[0] : null);
+    var mode = opts.inc || (data.args.length ? data.args[0] : null);
 
     makeArrayOpt(opts, 'syncFields');
  
@@ -275,23 +272,19 @@ module.exports = function(grunt) {
     }
 
     // Process all JSON manifests
-    var masterManifest = opts._context.masterManifest;
+    var masterManifest = null; //opts._data.masterManifest;
     var isFirst = true;
 
     opts.manifests.forEach(function(filepath) {
-      var manifest, origVersion;
-
-      if(isFirst) {
-        // First manifest was already read on startup
-        manifest = masterManifest;
-      }else{
-        manifest = grunt.file.readJSON(filepath);
-      }
-      origVersion = semver.valid(manifest.version);
+      var manifest = readJsonCached(data.manifestCache, filepath);
+      var origVersion = semver.valid(manifest.version);
       if( !origVersion ){
         grunt.fail.fatal('Invalid version "' + manifest.version + '" in ' + filepath);
-        // grunt.log.error('Invalid version "' + manifest.version + '" in ' + filepath);
-        // if (this.errorCount > 0) {
+      }
+
+      if(isFirst) {
+        masterManifest = manifest;
+        data.origVersion = masterManifest.version;
       }
       if( mode !== 'zero' ) {
         if( isFirst || !opts.syncVersion ) {
@@ -303,7 +296,7 @@ module.exports = function(grunt) {
         // don't bump, but sync in 'zero' mode
         manifest.version = masterManifest.version;
       }
-      opts._context.version = masterManifest.version;
+      data.version = masterManifest.version;
 
       if( isFirst && opts.updateConfig ){
         if( grunt.config(opts.updateConfig) ){
@@ -325,6 +318,7 @@ module.exports = function(grunt) {
       grunt.log.write('Bumping version in ' + filepath + ' from ' + origVersion + ' to ' + manifest.version + '...');
       if( !opts.noWrite ){
         grunt.file.write(filepath, JSON.stringify(manifest, null, opts.space));
+        // delete data.manifestCache[filepath]; // out-of-date now
       }
       grunt.log.ok();
       isFirst = false;
@@ -334,7 +328,7 @@ module.exports = function(grunt) {
   /*****************************************************************************
    * Call grunt tasks.
    */
-  tool_handlers.run = function(opts) {
+  tool_handlers.run = function(opts, data) {
     var task = opts.tasks.join(' ');
     grunt.log.writeln('Run task "' + task + '"...');
     exec(opts, 'grunt ' + task, {silent: opts.silent});
@@ -344,8 +338,8 @@ module.exports = function(grunt) {
   /*****************************************************************************
    * Add and commit files.
    */
-  tool_handlers.commit = function(opts) {
-    var message = processTemplate(opts.message, opts._context);
+  tool_handlers.commit = function(opts, data) {
+    var message = processTemplate(opts.message, data);
     makeArrayOpt(opts, 'add');
     if( opts.add.length ){
       exec(opts, 'git add ' + opts.add.join(' '));
@@ -360,9 +354,9 @@ module.exports = function(grunt) {
   /*****************************************************************************
    * Create tag.
    */
-  tool_handlers.tag = function(opts) {
-    var name = processTemplate(opts.name, opts._context);
-    var message = processTemplate(opts.message, opts._context);
+  tool_handlers.tag = function(opts, data) {
+    var name = processTemplate(opts.name, data);
+    var message = processTemplate(opts.message, data);
     exec(opts, 'git tag "' + name + '" -m "' + message + '"');
     grunt.log.ok('Created tag ' + name + ': "' + message + '"');
   };
@@ -370,7 +364,7 @@ module.exports = function(grunt) {
   /*****************************************************************************
    * Push commits and tags.
    */
-  tool_handlers.push = function(opts) {
+  tool_handlers.push = function(opts, data) {
     if( opts.tags ) {
       if( opts.useFollowTags ) {
         // Pushing in one command prevents Travis from starting two jobs (requires git 1.8.3+)
@@ -387,8 +381,8 @@ module.exports = function(grunt) {
   /*****************************************************************************
    * Publish release to npm
    */
-  tool_handlers.npmPublish = function(opts) {
-    var message = processTemplate(opts.message, opts._context);
+  tool_handlers.npmPublish = function(opts, data) {
+    var message = processTemplate(opts.message, data);
     exec(opts, 'npm publish .');
     grunt.log.ok('Published to npm.');
   };
