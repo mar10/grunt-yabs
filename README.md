@@ -96,7 +96,7 @@ grunt.initConfig({
       // The `run` tool executes grunt tasks 
       run: {tasks: ['compile', 'jshint:dist'] },
       // Tools may be executed multiple times (simply append '_something')
-      chheck_develop: { ... },
+      check_develop: { ... },
     },
 
     workflow_2: {
@@ -108,8 +108,9 @@ grunt.initConfig({
 
 The above workflow is triggered like this:
 ```shell
-$ grunt yabs:workflow_1
+$ grunt yabs:workflow_1:patch
 ```
+where `patch` may be replaced with one of the supported modes mentioned above.
 
 
 ### Options
@@ -168,12 +169,13 @@ grunt.initConfig({
         // Defaults for all tools in all workflows may go here
       },
       bump: {
-        // For example 'bump' should always use this options as default...
+        // For example 'bump' and 'bump_...' tools should  use this options as 
+        // default in all workflows...
       },
     },
     // Define a workflow named 'release':
     release: {
-      // Options used as default for all tools
+      // Options used as default for all tools in the 'release' workflow
       common: {
         enable: true,
         noWrite: false,              // `true` enables dry-run (note: 
@@ -190,32 +192,32 @@ grunt.initConfig({
       },
       // 'bump': increment manifest.version and synchronize other JSON files.
       bump: {
-        // bump also requires a mode argmuent (yabs:target:MODE)
+        // bump also requires a mode argument (yabs:target:MODE)
         inc: null,              // Override 'yabs:target:MODE'
         syncVersion: true,      // Only increment master manifest, then copy 
                                 // version to secondaries
         syncFields: [],         // Synchronize entries from master to 
                                 // secondaries (if field exists)
         space: 2,               // Indentation used when writing JSON files
-        updateConfig: 'pkg',    // Make sure pkg.version contains new value
+        updateConfig: 'pkg',    // Make sure pkg.version contains the new value
       },
       // 'run': Run arbitrary grunt tasks
       run: {
-        tasks: [] // (Tasks must be defined in the current Gruntfile)
+        tasks: [], // (Tasks must be defined in the current Gruntfile)
         silent: false,          // `true`: suppress output
       },
-      // 'commit': Commit all manifest files (and optionally others)
+      // 'commit': Commit modifed files
       commit: {
         add: [],                // Also `git add` these files ('.' for all)
         addKnown: true,         // Commit with -a flag
         message: 'Bumping version to {%= version %}',
       },
-      // 'tag': Create a tag
+      // 'tag': Create an annotated tag
       tag: {
         name: 'v{%= version %}',
         message: 'Version {%= version %}',
       },
-      // 'push': push changes and tags
+      // 'push': Push changes and tags
       push: {
         target: '',             // E.g. 'upstream'
         tags: false,            // Also push tags
@@ -224,7 +226,7 @@ grunt.initConfig({
       // 'npmPublish': Submit to npm repository
       npmPublish: {
         message: 'Released {%= version %}',
-      }
+      },
   }
 });
 ```
