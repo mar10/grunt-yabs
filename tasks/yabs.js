@@ -25,9 +25,8 @@ var shell = require('shelljs');
 module.exports = function(grunt) {
 
   var _ = lodash;
-  var KNOWN_TOOLS = 'bump check commit exec npmPublish push run tag'.split(' ');
   var tool_handlers = {};
-
+  var KNOWN_TOOLS = 'bump check commit exec npmPublish push run tag'.split(' ');
   var DEFAULT_OPTIONS = {
     common: { // options used as default for all tools
       args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
@@ -171,34 +170,24 @@ module.exports = function(grunt) {
     // Run the tool chain. We assume that property order *is* predictable in V8:
     for(var toolname in workflowOpts){
       if( toolname === 'common' ) { continue; }
-      var match = false;
-      for(var i=0; i<KNOWN_TOOLS.length; i++){
-        var tooltype = KNOWN_TOOLS[i];
-        if(toolname === tooltype || toolname.indexOf(tooltype + '_') === 0 ){
-          match = true;
-
-          var toolOptions = lodash.merge(
-            {}, // copy, so we don't modify the original
-            DEFAULT_OPTIONS.common,                           // Hard coded defaults
-            DEFAULT_OPTIONS[tooltype], 
-            grunt.config([this.name, 'options', 'common']),   // config.yabs.options.common
-            grunt.config([this.name, 'options', tooltype]),   // config.yabs.options.TOOLTYPE
-            grunt.config([this.name, this.target, 'common']), // config.yabs.WORKFLOW.common
-            grunt.config([this.name, this.target, toolname])  // config.yabs.WORKFLOW.TOOLNAME
-            );
-          
-          // Make sure that --no-write is always honored
-          if( grunt.option('no-write') ) {
-            toolOptions.noWrite = true;
-          }
-
-          runTool(tooltype, toolname, toolOptions, data);
-          break; // type was found, now proceed with next tool
-        }
-      }
-      if( !match ){
+      var tooltype = toolname.match(/^([^_]*)/)[1];
+      if( !_.contains(KNOWN_TOOLS, tooltype) ){
         grunt.fail.warn('Tool "' + toolname + '" is not of a known type (' + KNOWN_TOOLS.join(', ') + ').');
       }
+      var toolOptions = lodash.merge(
+        {}, // copy, so we don't modify the original
+        DEFAULT_OPTIONS.common,                            // Hard coded defaults
+        DEFAULT_OPTIONS[tooltype], 
+        grunt.config([this.name, 'options', 'common']),    // config.yabs.options.common
+        grunt.config([this.name, 'options', tooltype]),    // config.yabs.options.TOOLTYPE
+        grunt.config([this.name, this.target, 'common']),  // config.yabs.WORKFLOW.common
+        grunt.config([this.name, this.target, toolname])); // config.yabs.WORKFLOW.TOOLNAME
+      
+      // Make sure that --no-write is always honored
+      if( grunt.option('no-write') ) {
+        toolOptions.noWrite = true;
+      }
+      runTool(tooltype, toolname, toolOptions, data);
     }
     if( grunt.option('no-write') ) {
       grunt.log.writeln('*** DRY-RUN mode: No bits were harmed during this run. ***');
