@@ -74,7 +74,7 @@ module.exports = function(grunt) {
     push: {
       target: '',               // E.g. 'upstream'
       tags: false,              // Also push tags
-      useFollowTags: true,      // Use `--folow-tags` instead of `&& push --tags`
+      useFollowTags: false,     // Use `--folow-tags` instead of `&& push --tags`
     },
     // 'npmPublish': Submit to npm repository
     npmPublish: {

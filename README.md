@@ -5,25 +5,55 @@
 [![Npm Downloads](https://nodei.co/npm/grunt-yabs.png?downloads=true&stars=true)](https://www.npmjs.org/package/grunt-yabs)
 
 <b>Y</b>et <b>A</b>nother <b>B</b>uild <b>S</b>cript. *&lt;sigh>, why*? you ask...<br>
-Because
+Well, because
 - It comes with a set of useful tools like 'check', 'bump', 'commit', 'tag', 
   'push', 'run', 'npmPublish', ...
 - It allows to define mini-workflows by running these tasks in arbitrary order
   with individual options.
 - It's a multi-task, so multiple workflows can be defined.
-- And mainly because it is *fun*. 
-  [Join the project](https://github.com/mar10/grunt-yabs/blob/master/tasks/yabs.js) 
-  if you like.
 
 
 ## Status
 [![NPM version](https://badge.fury.io/js/grunt-yabs.png)](#)
 
-This is Work In Progress and barely tested. **Definitely not fit for production yet!**
-Let me know if you find bugs or have suggestions.
+Beta - *Might Work*.<br>
+Let me know if you find bugs or have suggestions.<br>
+[Review the code](https://github.com/mar10/grunt-yabs/blob/master/tasks/yabs.js)
+if you like.
 
-Especially option defaults may change, so use dry-run mode after updating this 
+**Note:** Especially option defaults may change, so use dry-run mode after updating this 
 plugin.
+
+
+## A Plain Sample Workflow
+A simple workflow definition may look like this:
+
+```js
+grunt.initConfig({
+  yabs: {
+    release: {
+      common: { // defaults for all tools
+        manifests: ['package.json', 'bower.json'],
+      },
+      // The following tools are run in the configured order:
+      check: { clean: true, branch: ['master'] },
+      bump: {}, // 'bump' also uses the increment mode `yabs:release:MODE`
+      run: {tasks: ['compile', 'jshint:dist'] },
+      commit: {},
+      tag: {},
+      push: { tags: true },
+      // Tools may be executed multiple times (simply append '_something')
+      bump_develop: { inc: 'prepatch' },
+      commit_develop: { message: 'Bump prerelease ({%= version %}) [ci skip]' },
+      push_develop: {},
+    }
+  },
+});
+```
+The above workflow is triggered like this:
+```shell
+$ grunt yabs:release:patch
+```
 
 
 ## Getting Started
@@ -76,18 +106,17 @@ passed into `grunt.initConfig()`.
 grunt.initConfig({
   yabs: {
     options: {
-      // Common default options for all targets (i.e. workflows)
       common: { 
         // Defaults for all tools in all workflows may go here
       },
       check: {
-        // For example 'check' should always use this options as default...
+        // For example 'check' and 'check_...' tools always use this defaults
       },
     },
 
     workflow_1: {
       common: {
-        // Default options for all tools in this workflow
+        // Default options for all tools in workflow_1
       },
       check: { // The presence of this entry triggers the 'check' tool
         // Specific options for the 'check' tool
@@ -112,7 +141,7 @@ $ grunt yabs:workflow_1:patch
 ```
 where `patch` may be replaced with one of the supported modes mentioned above.
 
-
+<!--
 ### Options
 
 #### options.check.clean
@@ -123,41 +152,10 @@ Set to `true` or `false` to assert the repository has/has not uncommited changes
 
 TODO: more options here...
 For now see section "Available Options" below.
-
-
 ### Usage Examples
+-->
 
-#### A Plain Sample Workflow
-A simple workflow definition may look like this:
-
-```js
-grunt.initConfig({
-  yabs: {
-    release: {
-      common: { // defaults for all tools
-        manifests: ['package.json', 'bower.json'],
-      },
-      // The following tools are run in order:
-      check: { clean: true, branch: ['master'] },
-      bump: {}, // 'bump' also uses the increment mode `yabs:release:MODE`
-      run: {tasks: ['compile', 'jshint:dist'] },
-      commit: {},
-      tag: {},
-      push: { tags: true },
-      // Tools may be executed multiple times (simply append '_something')
-      bump_develop: { inc: 'prepatch' },
-      commit_develop: { message: 'Bump prerelease ({%= version %}) [ci skip]' },
-      push_develop: {},
-    }
-  },
-});
-```
-The above workflow is triggered like this:
-```shell
-$ grunt yabs:release:patch
-```
-
-#### Available Options
+### Available Options
 Available tools and their default options:
 
 ```js
@@ -190,7 +188,7 @@ grunt.initConfig({
         clean: undefined,       // Repo must/must not contain modifications? 
         branch: ['master'],     // Current branch must be in this list
       },
-      // 'bump': increment manifest.version and synchronize other JSON files.
+      // 'bump': increment manifest.version and synchronize other JSON files
       bump: {
         // bump also requires a mode argument (yabs:target:MODE)
         inc: null,              // Override 'yabs:target:MODE'
@@ -206,7 +204,7 @@ grunt.initConfig({
         tasks: [], // (Tasks must be defined in the current Gruntfile)
         silent: false,          // `true`: suppress output
       },
-      // 'commit': Commit modifed files
+      // 'commit': Commit modified files
       commit: {
         add: [],                // Also `git add` these files ('.' for all)
         addKnown: true,         // Commit with -a flag
@@ -221,7 +219,7 @@ grunt.initConfig({
       push: {
         target: '',             // E.g. 'upstream'
         tags: false,            // Also push tags
-        useFollowTags: true,    // Use `--folow-tags` instead of `&& push --tags`
+        useFollowTags: false,   // Use `--folow-tags` instead of `&& push --tags`
       },
       // 'npmPublish': Submit to npm repository
       npmPublish: {
