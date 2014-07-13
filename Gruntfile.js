@@ -51,6 +51,12 @@ module.exports = function(grunt) {
         bump_develop: { inc: 'prepatch' },
         commit_develop: { message: 'Bump for prerelease ({%= version %}) [ci skip]' },
         push_develop: {},
+      },
+      gr: {
+        check: { clean: true, branch: ['master'] },
+        githubRelease: {
+          
+        },
       }
     },
 

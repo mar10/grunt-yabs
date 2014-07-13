@@ -18,6 +18,8 @@
 'use strict';
 
 var lodash = require('lodash');
+var Q = require('q');
+var request = require('superagent');
 var semver = require('semver');
 var shell = require('shelljs');
 
@@ -26,7 +28,7 @@ module.exports = function(grunt) {
 
   var _ = lodash;
   var tool_handlers = {};
-  var KNOWN_TOOLS = 'bump check commit exec npmPublish push run tag'.split(' ');
+  var KNOWN_TOOLS = 'bump check commit exec githubRelease npmPublish push run tag'.split(' ');
   var DEFAULT_OPTIONS = {
     common: { // options used as default for all tools
       args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
@@ -81,6 +83,18 @@ module.exports = function(grunt) {
 //    tag: null,
       message: 'Released {%= version %}',
     },
+    // 'githubRelease': Create 
+    githubRelease: {
+      repo: null, // 'owner/repo'
+      auth: {usernameVar: 'GITHUB_USERNAME', passwordVar: 'GITHUB_PASSWORD'},
+//    tagName: 'v1.0.0',
+//    targetCommitish: null, //'master',
+      name: 'v{%= version %}',
+      body: 'Released {%= version %}',
+      draft: false,
+      prerelease: false,
+//    files: [],
+    },
   };
 
   if (!shell.which('git')) {
@@ -88,9 +102,6 @@ module.exports = function(grunt) {
     return false;
   }
   /** Convert opts.name to an array if not already. */
-  // function asArray(val) {
-  //   return val == null ? null : (Array.isArray(val) ? val : [ val ]);
-  // }
   function makeArrayOpt(opts, name) {
     if( !Array.isArray(opts[name]) ) {
       opts[name] = [ opts[name] ];
@@ -115,7 +126,7 @@ module.exports = function(grunt) {
     return cache[filepath];
   }
 
-  /** Execute shell command. */
+  /** Execute shell command (synchronous). */
   function exec(opts, cmd, extra) {
     extra = extra || {};
     var silent = (extra.silent !== false); // Silent, unless explicitly passed `false`
@@ -133,20 +144,24 @@ module.exports = function(grunt) {
   }
 
   /** Call tool handler with its aggregated options. */
-  function runTool(tooltype, toolname, toolOptions, data) {
-    // var opts = getToolOpts(taskOptions, data, tooltype, toolname);
-    var dispData = _.cloneDeep(data);
+  function makeToolRunner(tooltype, toolname, toolOptions, data) {
+    return function(){
+      var dispData = _.cloneDeep(data);
+      var deferred = Q.defer();
 
-    // dispData.masterManifest = '...';
-    if( toolOptions.enable ) {
-      grunt.verbose.writeln('Running "' + toolname + 
-        '" tool with opts=' + JSON.stringify(toolOptions) + 
-        ', data=' + JSON.stringify(dispData) + '...');
-      tool_handlers[tooltype](toolOptions, data);
-      data.completedTools.push(toolname);
-    }else{
-      grunt.verbose.writeln('"' + toolname + '" tool is disabled.');
-    }
+      // dispData.masterManifest = '...';
+      if( toolOptions.enable ) {
+        grunt.verbose.writeln('Running "' + toolname + 
+          '" tool with opts=' + JSON.stringify(toolOptions) + 
+          ', data=' + JSON.stringify(dispData) + '...');
+        tool_handlers[tooltype](deferred, toolOptions, data);
+        data.completedTools.push(toolname);
+      }else{
+        grunt.verbose.writeln('"' + toolname + '" tool is disabled.');
+        deferred.resolve();
+      }
+      return deferred.promise;
+    };
   }
 
   /*****************************************************************************
@@ -167,7 +182,12 @@ module.exports = function(grunt) {
       origVersion: null,
       version: null,
     };
-    // Run the tool chain. We assume that property order *is* predictable in V8:
+    // This task runs 
+    var done = grunt.task.current.async();
+    // We use promises in order to serialize asnyc operations like ajax requests.
+    var q = new Q();
+
+    // Run the tool chain. We assume that property order *is* predictable in V8!
     for(var toolname in workflowOpts){
       if( toolname === 'common' ) { continue; }
       var tooltype = toolname.match(/^([^_]*)/)[1];
@@ -187,17 +207,23 @@ module.exports = function(grunt) {
       if( grunt.option('no-write') ) {
         toolOptions.noWrite = true;
       }
-      runTool(tooltype, toolname, toolOptions, data);
+      // Queue a runner function that calls a tool and returns a promise
+      q = q.then(makeToolRunner(tooltype, toolname, toolOptions, data));
     }
-    if( grunt.option('no-write') ) {
-      grunt.log.writeln('*** DRY-RUN mode: No bits were harmed during this run. ***');
-    }
+    q.catch(function(msg){
+      grunt.fail.warn(msg || 'ERROR: grunt-yabs failed');
+    }).finally(function(){
+      if( grunt.option('no-write') ) {
+        grunt.log.writeln('* DRY-RUN mode: No bits were harmed during the making of this release. *');
+      }
+      done(); // resolve the grunt async task mode
+    });
   });
 
   /*****************************************************************************
    * Assert preconditions and fail otherwise.
    */
-  tool_handlers.check = function(opts, data) {
+  tool_handlers.check = function(deferred, opts, data) {
     var result, valid, 
         errors = 0;
 
@@ -241,12 +267,13 @@ module.exports = function(grunt) {
     if ( errors  > 0 ) {
       grunt.fail.warn(errors + grunt.util.pluralize(errors, ' check failed./checks failed.'))  ;
     }
+    deferred.resolve();
   };
 
   /*****************************************************************************
    * Bump version on one or more manifests
    */
-  tool_handlers.bump = function(opts, data) {
+  tool_handlers.bump = function(deferred, opts, data) {
     var MODES = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease', 'zero'];
     var mode = opts.inc || (data.args.length ? data.args[0] : null);
 
@@ -313,22 +340,24 @@ module.exports = function(grunt) {
       grunt.log.ok();
       isFirst = false;
     });
+    deferred.resolve();
   };
 
   /*****************************************************************************
    * Call grunt tasks.
    */
-  tool_handlers.run = function(opts, data) {
+  tool_handlers.run = function(deferred, opts, data) {
     var task = opts.tasks.join(' ');
     grunt.log.writeln('Run task "' + task + '"...');
     exec(opts, 'grunt ' + task, {silent: opts.silent});
     grunt.log.ok('Run task "' + task + '".');
+    deferred.resolve();
   };
 
   /*****************************************************************************
    * Add and commit files.
    */
-  tool_handlers.commit = function(opts, data) {
+  tool_handlers.commit = function(deferred, opts, data) {
     makeArrayOpt(opts, 'add');
     if( opts.add.length ){
       exec(opts, 'git add ' + opts.add.join(' '));
@@ -339,22 +368,25 @@ module.exports = function(grunt) {
     exec(opts, 'git commit ' + commitArgs + ' "' + message + '"');
     // exec(opts, 'git commit ' + commitArgs + ' "' + message + '" "' + opts.manifests.join('" "') + '"');
     grunt.log.ok('Commited "' + message + '"');
+    deferred.resolve();
   };
 
   /*****************************************************************************
    * Create tag.
    */
-  tool_handlers.tag = function(opts, data) {
+  tool_handlers.tag = function(deferred, opts, data) {
     var name = processTemplate(opts.name, data);
     var message = processTemplate(opts.message, data);
     exec(opts, 'git tag "' + name + '" -m "' + message + '"');
     grunt.log.ok('Created tag ' + name + ': "' + message + '"');
+    data.lastTagName = name;
+    deferred.resolve();
   };
 
   /*****************************************************************************
    * Push commits and tags.
    */
-  tool_handlers.push = function(opts, data) {
+  tool_handlers.push = function(deferred, opts, data) {
     if( opts.tags ) {
       if( opts.useFollowTags ) {
         // Pushing in one command prevents Travis from starting two jobs (requires git 1.8.3+)
@@ -366,15 +398,66 @@ module.exports = function(grunt) {
       exec(opts, 'git push ' + opts.target);
     }
     grunt.log.ok('Pushed ' + opts.target + ' (' + (opts.tags ? 'with tags' : 'no tags') + ').');
+    deferred.resolve();
   };
 
   /*****************************************************************************
    * Publish release to npm
    */
-  tool_handlers.npmPublish = function(opts, data) {
+  tool_handlers.npmPublish = function(deferred, opts, data) {
     var message = processTemplate(opts.message, data);
     exec(opts, 'npm publish .');
     grunt.log.ok('Published to npm.');
+    deferred.resolve();
+  };
+
+  /*****************************************************************************
+   * Create a release on Github
+   */
+  tool_handlers.githubRelease = function(deferred, opts, data) {
+    var body = processTemplate(opts.body, data);
+    var name = processTemplate(opts.name, data);
+    var tagName = processTemplate(opts.tagName, data);
+    if( opts.noWrite ) {
+      grunt.log.writeln('DRY-RUN: would POST request https://api.github.com/repos/' + opts.repo + '/releases');
+      deferred.resolve();
+      return;
+    }
+
+    // See for sync requests:
+    //  https://github.com/basti1302/superagent/commit/0327fd9564e39fe1ca303fa186a89227cd8b932d    
+    request
+      .post('https://api.github.com/repos/' + opts.repo + '/releases')
+      .auth(process.env[opts.usernameVar], process.env[opts.passwordVar])
+      .set('Accept', 'application/vnd.github.manifold-preview')
+      .set('User-Agent', 'grunt-yabs')
+      .send({
+        tag_name: tagName || data.lastTagName, 
+//      target_commitish: null, //'master',
+        name: name,
+        draft: !!opts.draft,
+        prerelease: !!opts.prerelease,
+      }).end(function(res){
+        if( res.statusCode === 201 ) {
+          grunt.log.ok('Created GitHub release.');
+          deferred.resolve();
+        } else {
+          grunt.fail.warn('Error creating GitHub release: ' + res.text);
+          deferred.reject(res.text);
+        }
+      });
+    // request
+    //   .get('http://github.com/')
+    //   .end(function(res){
+    //     grunt.log.ok('request.end(): ' + res.statusCode);
+    //     if( res.statusCode === 200 ) {
+    //       grunt.log.ok('Created GitHub release.');
+    //       deferred.resolve();
+    //     } else {
+    //       grunt.fail.warn('Error creating GitHub release: ' + res.text);
+    //       deferred.reject(res.text);
+    //     }
+    //   });
   };
 
 };
