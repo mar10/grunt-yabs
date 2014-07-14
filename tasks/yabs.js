@@ -417,47 +417,40 @@ module.exports = function(grunt) {
   tool_handlers.githubRelease = function(deferred, opts, data) {
     var body = processTemplate(opts.body, data);
     var name = processTemplate(opts.name, data);
-    var tagName = processTemplate(opts.tagName, data);
+    var tagName = opts.tagName ? processTemplate(opts.tagName, data) : data.lastTagName;
+    
     if( opts.noWrite ) {
       grunt.log.writeln('DRY-RUN: would POST request https://api.github.com/repos/' + opts.repo + '/releases');
       deferred.resolve();
       return;
     }
-
+    if( !data.version || !tagName ) {
+      deferred.reject('Missing version and/or tag (run bump and tag tools before githubRelease)');
+      return;
+    }
     // See for sync requests:
     //  https://github.com/basti1302/superagent/commit/0327fd9564e39fe1ca303fa186a89227cd8b932d    
     request
       .post('https://api.github.com/repos/' + opts.repo + '/releases')
-      .auth(process.env[opts.usernameVar], process.env[opts.passwordVar])
+      .auth(process.env[opts.auth.usernameVar], process.env[opts.auth.passwordVar])
       .set('Accept', 'application/vnd.github.manifold-preview')
       .set('User-Agent', 'grunt-yabs')
       .send({
-        tag_name: tagName || data.lastTagName, 
+        tag_name: tagName, 
 //      target_commitish: null, //'master',
         name: name,
+        body: body,
         draft: !!opts.draft,
         prerelease: !!opts.prerelease,
       }).end(function(res){
         if( res.statusCode === 201 ) {
-          grunt.log.ok('Created GitHub release.');
+          grunt.log.ok('Created GitHub release ' + opts.repo + ' ' + tagName + '.');
           deferred.resolve();
         } else {
-          grunt.fail.warn('Error creating GitHub release: ' + res.text);
+          grunt.fail.warn('Error creating GitHub release: ' + res.statusCode + " " + res.text);
           deferred.reject(res.text);
         }
       });
-    // request
-    //   .get('http://github.com/')
-    //   .end(function(res){
-    //     grunt.log.ok('request.end(): ' + res.statusCode);
-    //     if( res.statusCode === 200 ) {
-    //       grunt.log.ok('Created GitHub release.');
-    //       deferred.resolve();
-    //     } else {
-    //       grunt.fail.warn('Error creating GitHub release: ' + res.text);
-    //       deferred.reject(res.text);
-    //     }
-    //   });
   };
 
 };

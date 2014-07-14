@@ -47,17 +47,16 @@ module.exports = function(grunt) {
         tag: {},
         run: {tasks: ['jshint'] },
         push: { tags: true, useFollowTags: true },
+        githubRelease: {
+          repo: "mar10/grunt-yabs",
+          draft: true,
+          prerelease: false,
+        },
         npmPublish: {},
         bump_develop: { inc: 'prepatch' },
         commit_develop: { message: 'Bump for prerelease ({%= version %}) [ci skip]' },
         push_develop: {},
       },
-      gr: {
-        check: { clean: true, branch: ['master'] },
-        githubRelease: {
-          
-        },
-      }
     },
 
     // Unit tests.
