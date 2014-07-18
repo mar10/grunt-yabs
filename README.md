@@ -43,6 +43,7 @@ grunt.initConfig({
       commit: {},
       tag: {},
       push: { tags: true },
+      githubRelease: { repo: 'fooser/barapp', draft: false },
       // Tools may be executed multiple times (simply append '_something')
       bump_develop: { inc: 'prepatch' },
       commit_develop: { message: 'Bump prerelease ({%= version %}) [ci skip]' },
@@ -225,6 +226,15 @@ grunt.initConfig({
       // 'npmPublish': Submit to npm repository
       npmPublish: {
         message: 'Released {%= version %}',
+      },
+      // 'githubRelease': Create a release on GitHub
+      githubRelease: {
+        repo: null,             // 'owner/repo'
+        auth: {usernameVar: 'GITHUB_USERNAME', passwordVar: 'GITHUB_PASSWORD'},
+        name: 'v{%= version %}',
+        body: 'Released {%= version %}',
+        draft: true,
+        prerelease: false,
       },
   }
 });

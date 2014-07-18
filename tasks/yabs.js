@@ -83,7 +83,7 @@ module.exports = function(grunt) {
 //    tag: null,
       message: 'Released {%= version %}',
     },
-    // 'githubRelease': Create 
+    // 'githubRelease': Create a release on GitHub
     githubRelease: {
       repo: null, // 'owner/repo'
       auth: {usernameVar: 'GITHUB_USERNAME', passwordVar: 'GITHUB_PASSWORD'},
@@ -91,7 +91,7 @@ module.exports = function(grunt) {
 //    targetCommitish: null, //'master',
       name: 'v{%= version %}',
       body: 'Released {%= version %}',
-      draft: false,
+      draft: true,
       prerelease: false,
 //    files: [],
     },

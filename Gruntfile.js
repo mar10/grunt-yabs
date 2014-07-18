@@ -49,7 +49,7 @@ module.exports = function(grunt) {
         push: { tags: true, useFollowTags: true },
         githubRelease: {
           repo: "mar10/grunt-yabs",
-          draft: true,
+          draft: false,
           prerelease: false,
         },
         npmPublish: {},
