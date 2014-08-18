@@ -419,30 +419,33 @@ module.exports = function(grunt) {
     var name = processTemplate(opts.name, data);
     var tagName = opts.tagName ? processTemplate(opts.tagName, data) : data.lastTagName;
     
-    if( opts.noWrite ) {
-      grunt.log.writeln('DRY-RUN: would POST request https://api.github.com/repos/' + opts.repo + '/releases');
-      deferred.resolve();
-      return;
-    }
     if( !data.version || !tagName ) {
       deferred.reject('Missing version and/or tag (run bump and tag tools before githubRelease)');
       return;
     }
-    // See for sync requests:
-    //  https://github.com/basti1302/superagent/commit/0327fd9564e39fe1ca303fa186a89227cd8b932d    
+    var sendArgs = {
+      tag_name: tagName, 
+//    target_commitish: null, //'master',
+      name: name,
+      body: body,
+      draft: !!opts.draft,
+      prerelease: !!opts.prerelease,
+      };
+
+    if( opts.noWrite ) {
+      grunt.log.writeln('DRY-RUN: would create GitHub release on repository ' + opts.repo +
+        ': ' + JSON.stringify(sendArgs));
+      deferred.resolve();
+      return;
+    }
+
     request
       .post('https://api.github.com/repos/' + opts.repo + '/releases')
       .auth(process.env[opts.auth.usernameVar], process.env[opts.auth.passwordVar])
       .set('Accept', 'application/vnd.github.manifold-preview')
       .set('User-Agent', 'grunt-yabs')
-      .send({
-        tag_name: tagName, 
-//      target_commitish: null, //'master',
-        name: name,
-        body: body,
-        draft: !!opts.draft,
-        prerelease: !!opts.prerelease,
-      }).end(function(res){
+      .send(sendArgs)
+      .end(function(res){
         if( res.statusCode === 201 ) {
           grunt.log.ok('Created GitHub release ' + opts.repo + ' ' + tagName + '.');
           deferred.resolve();

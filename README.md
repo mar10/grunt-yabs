@@ -37,9 +37,10 @@ grunt.initConfig({
         manifests: ['package.json', 'bower.json'],
       },
       // The following tools are run in the configured order:
+      run_jshint: { tasks: ['jshint:dev'] },
       check: { clean: true, branch: ['master'] },
       bump: {}, // 'bump' also uses the increment mode `yabs:release:MODE`
-      run: {tasks: ['compile', 'jshint:dist'] },
+      run_build: { tasks: ['compile', 'jshint:dist'] },
       commit: {},
       tag: {},
       push: { tags: true },
