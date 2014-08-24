@@ -42,8 +42,9 @@ module.exports = function(grunt) {
 
     // 'check': Assert preconditons and fail otherwise
     check: {
-      clean: undefined,         // Repo must/must not contain modifications? 
       branch: ['master'],       // Current branch must be in this list
+      canPush: undefined,       // Test if 'git push' would/would not succeed
+      clean: undefined,         // Repo must/must not contain modifications?
 //      allowDirty: [],
 //      isPrerelease: undefined,
     },
@@ -224,7 +225,7 @@ module.exports = function(grunt) {
    * Assert preconditions and fail otherwise.
    */
   tool_handlers.check = function(deferred, opts, data) {
-    var result, valid, 
+    var flag, result, valid, 
         errors = 0;
 
     makeArrayOpt(opts, 'branch');
@@ -248,16 +249,29 @@ module.exports = function(grunt) {
     }
     if( typeof opts.clean === 'boolean' ){
       // http://stackoverflow.com/questions/2657935/checking-for-a-dirty-index-or-untracked-files-with-git
-      var flag = !!opts.clean,
-          isClean = exec(opts, 'git diff-index --quiet HEAD --', { 
-            checkResultCode: false,
-            always: true 
-          }).code === 0;
-      if( flag !== isClean ) {
-        grunt.log.error('Repository has ' + (isClean ? 'no ' : '') + 'staged changes.');
-        errors += 1;
+      flag = !!opts.clean;
+      result = exec(opts, 'git diff-index --quiet HEAD --', { 
+          checkResultCode: false,
+          always: true 
+        });
+      if( flag === (result.code === 0) ) {
+        grunt.log.ok('Repository is ' + (flag ? '' : 'not ') + 'clean.');
       }else{
-        grunt.log.ok('Repository is ' + (isClean ? '' : 'not ') + 'clean.');
+        grunt.log.error('Repository has ' + (flag ? '' : 'no ') + 'staged changes.');
+        errors += 1;
+      }
+    }
+    if( typeof opts.canPush === 'boolean' ){
+      flag = !!opts.canPush;
+      result = exec(opts, 'git push --dry-run', { 
+          checkResultCode: false,
+          always: true 
+        });
+      if( flag === (result.code === 0) ) {
+        grunt.log.ok('"git push" would ' + (flag ? 'succeed' : 'fail') + '.');
+      }else{
+        grunt.log.error('Repository is ' + (flag ? 'not ' : '') + 'pushable: ' + result.output.trim());
+        errors += 1;
       }
     }
     // if( typeof opts.isPrerelease === 'boolean' ){

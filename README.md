@@ -188,8 +188,9 @@ grunt.initConfig({
 
       // 'check': Assert preconditons and fail otherwise
       check: {
-        clean: undefined,       // Repo must/must not contain modifications? 
         branch: ['master'],     // Current branch must be in this list
+        canPush: undefined,     // Test if 'git push' would/would not succeed
+        clean: undefined,       // Repo must/must not contain modifications? 
       },
       // 'bump': increment manifest.version and synchronize other JSON files
       bump: {
