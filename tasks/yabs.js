@@ -136,7 +136,7 @@ module.exports = function(grunt) {
       grunt.verbose.writeln('Running: ' + cmd);
       var result = shell.exec(cmd, {silent: silent});
       if (extra.checkResultCode !== false && result.code !== 0) {
-        grunt.fail.warn('Error (' + result.code + ') ' + result.output);
+        grunt.fail.warn('exec(' + cmd + ') failed with code ' + result.code + ':\n' + result.output);
       }else{
         return result;
       }
