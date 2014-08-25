@@ -5,10 +5,10 @@
 [![Npm Downloads](https://nodei.co/npm/grunt-yabs.png?downloads=true&stars=true)](https://www.npmjs.org/package/grunt-yabs)
 
 <b>Y</b>et <b>A</b>nother <b>B</b>uild <b>S</b>cript. *&lt;sigh>, why*? you ask...<br>
-Well, because
+Because
 - It comes with a set of useful tools like 'check', 'bump', 'commit', 'tag', 
-  'push', 'run', 'npmPublish', ...
-- Also other tasks from your gruntfile may be called.
+  'push', 'run', 'npmPublish', 'githubRelease', ...
+- Also other tasks from your gruntfile may be called as part of the workflow.
 - It allows to define mini-workflows by running these tasks in arbitrary order
   with individual options.
 - It's a multi-task, so multiple workflows can be defined.
