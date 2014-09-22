@@ -45,6 +45,7 @@ module.exports = function(grunt) {
       branch: ['master'],       // Current branch must be in this list
       canPush: undefined,       // Test if 'git push' would/would not succeed
       clean: undefined,         // Repo must/must not contain modifications?
+      cmpVersion: null,         // E.g. set to 'gt' to assert that current tag is higher than the latest ((gt, gte, lt, lte, eq, neq))
 //      allowDirty: [],
 //      isPrerelease: undefined,
     },
@@ -208,6 +209,11 @@ module.exports = function(grunt) {
       if( grunt.option('no-write') ) {
         toolOptions.noWrite = true;
       }
+      // Make sure we have a current version
+      if( !data.origVersion ) {
+        var manifest = readJsonCached(data.manifestCache, toolOptions.manifests[0]);
+        data.version = data.origVersion = semver.valid(manifest.version);
+      }
       // Queue a runner function that calls a tool and returns a promise
       q = q.then(makeToolRunner(tooltype, toolname, toolOptions, data));
     }
@@ -225,7 +231,7 @@ module.exports = function(grunt) {
    * Assert preconditions and fail otherwise.
    */
   tool_handlers.check = function(deferred, opts, data) {
-    var flag, result, valid, 
+    var flag, latestTag, result, valid, 
         errors = 0;
 
     makeArrayOpt(opts, 'branch');
@@ -271,6 +277,22 @@ module.exports = function(grunt) {
         grunt.log.ok('"git push" would ' + (flag ? 'succeed' : 'fail') + '.');
       }else{
         grunt.log.error('Repository is ' + (flag ? 'not ' : '') + 'pushable: ' + result.output.trim());
+        errors += 1;
+      }
+    }
+    if( opts.cmpVersion != null ){
+      // Get new tags from the remote
+      result = exec(opts, 'git fetch --tags', {always: true });
+      // Get the latest tag name
+      result = exec(opts, 'git rev-list --tags --max-count=1', {always: true });
+      result = exec(opts, 'git describe --tags ' + result.output.trim(), {always: true });
+      latestTag = semver.valid(result.output.trim());
+      // TODO: requires  semver v4.0.0:
+//    if( semver.cmp(data.version, opts.cmpVersion, latestTag) ) { 
+      if( semver[opts.cmpVersion](data.version, latestTag) ) {
+        grunt.log.ok('Current version (' + data.version + ') is `' + opts.cmpVersion + '` latest tag (' + latestTag   + ').');
+      } else {
+        grunt.log.error('Current version (' + data.version + ') is NOT `' + opts.cmpVersion + '` latest tag (' + latestTag   + ').');
         errors += 1;
       }
     }

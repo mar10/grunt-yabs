@@ -35,14 +35,15 @@ grunt.initConfig({
     release: {
       // Define defaults for all tools in the 'release' workflow:
       common: { 
-        // We want to update and two manifest files (first is 'master')
+        // We want to update two manifest files (first is 'master')
         manifests: ['package.json', 'bower.json'],
       },
       // Define the activities of the 'release' worflow. The following tools are 
-      // run in the order of appearance.
+      // run in order of appearance.
+      // If an activity fails, the workflow is stopped.
       // Every tool type has its own set of options and defaults.
       // Since keys must be unique, we have to append '_something' if a certain
-      // tool type appears mode than once. For example `bump` and `bump_develop`
+      // tool type appears more than once. For example `bump` and `bump_develop`
       // are both tools of type 'bump'.
 
       // Run the jshint task with target 'dev'. (This assumes, that there is a
@@ -53,10 +54,11 @@ grunt.initConfig({
       check: { clean: true, branch: ['master'] },
 
       // Bump and synchronize `version` info in the manifests listed above.
-      // 'bump' also uses the increment mode passed like `yabs:release:MODE`
+      // 'bump' also uses the increment mode passed like `$ grunt yabs:release:MODE`
       bump: {},
 
-      // Run some compile task (build, compress, ...) and jshint the result
+      // Run some compile task (build, compress, LESS, ...) and jshint the result.
+      // Any complex build task from your Gruntfile can be triggered here:
       run_build: { tasks: ['compile', 'jshint:dist'] },
 
       // `git commit` the changes
@@ -68,10 +70,13 @@ grunt.initConfig({
       // `git push --follow-tags`
       push: { tags: true },
 
+      // Submit to npm repository
+      npmPublish: {},
+
       // Use the GitHub API to publish a release
       githubRelease: { repo: 'mar10/grunt-yabs', draft: false },
 
-      // Bump again for post release (e.g. 1.2.3 -> 1.2.4-1)
+      // Bump again for post release (e.g. 1.2.3 -> 1.2.4-0)
       bump_develop: { inc: 'prepatch' },
 
       // Commit and push the post release info
@@ -114,7 +119,7 @@ command line:
 $ grunt yabs:WORKFLOW:MODE
 ```
 Valid modes are `major`, `minor`, `patch`, `prerelease` to increment the version
-number according to semver.<br>
+number according to [semver](http://semver.org/).<br>
 `premajor`, `preminor`, `prepatch` can be used to prepare post-release versions.<br>
 Use `zero` to *not* bump the version number, but only synchronize the current 
 fields with secondary manifests.
