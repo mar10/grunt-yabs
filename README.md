@@ -69,7 +69,7 @@ grunt.initConfig({
       tag: {},
 
       // `git push --follow-tags`
-      push: { tags: true },
+      push: { tags: true, useFollowTags: true },
 
       // Submit to npm repository
       npmPublish: {},
