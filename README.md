@@ -201,7 +201,8 @@ grunt.initConfig({
       push: {
         target: '',             // E.g. 'upstream'
         tags: false,            // Also push tags
-        useFollowTags: true,    // Use `--folow-tags` instead of `&& push --tags`
+        useFollowTags: false,   // Use `--folow-tags` instead of `&& push --tags`
+                                // (requires git 1.8.3+)
       },
       // 'npmPublish': Submit to npm repository
       npmPublish: {

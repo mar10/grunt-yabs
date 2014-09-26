@@ -45,7 +45,9 @@ module.exports = function(grunt) {
       branch: ['master'],       // Current branch must be in this list
       canPush: undefined,       // Test if 'git push' would/would not succeed
       clean: undefined,         // Repo must/must not contain modifications?
-      cmpVersion: null,         // E.g. set to 'gt' to assert that current tag is higher than the latest ((gt, gte, lt, lte, eq, neq))
+      cmpVersion: null,         // E.g. set to 'gt' to assert that the current 
+                                // version is higher than the latest tag (gt, 
+                                // gte, lt, lte, eq, neq)
 //      allowDirty: [],
 //      isPrerelease: undefined,
     },
@@ -78,7 +80,8 @@ module.exports = function(grunt) {
     push: {
       target: '',               // E.g. 'upstream'
       tags: false,              // Also push tags
-      useFollowTags: true,      // Use `--folow-tags` instead of `&& push --tags`
+      useFollowTags: false,     // Use `--folow-tags` instead of `&& push --tags`
+                                // (requires git 1.8.3+)
     },
     // 'npmPublish': Submit to npm repository
     npmPublish: {

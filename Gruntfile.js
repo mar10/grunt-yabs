@@ -46,7 +46,7 @@ module.exports = function(grunt) {
         bump: {},
         commit: {},
         tag: {},
-        push: { tags: true },
+        push: { tags: true, useFollowTags: true },
         githubRelease: {
           repo: "mar10/grunt-yabs",
           draft: false,
