@@ -51,7 +51,8 @@ grunt.initConfig({
       run_jshint: { tasks: ['jshint:dev'] },
 
       // Assert that we are on the main branch, and everything is commited
-      check: { clean: true, branch: ['master'] },
+      // Do a dry-run push and make sure, that we are not behind the latest tag
+      check: { branch: ['master'], canPush: true, clean: true, cmpVersion: 'gt' },
 
       // Bump and synchronize `version` info in the manifests listed above.
       // 'bump' also uses the increment mode passed like `$ grunt yabs:release:MODE`
@@ -165,6 +166,9 @@ grunt.initConfig({
         branch: ['master'],     // Current branch must be in this list
         canPush: undefined,     // Test if 'git push' would/would not succeed
         clean: undefined,       // Repo must/must not contain modifications? 
+        cmpVersion: null,       // E.g. set to 'gt' to assert that the current 
+                                // version is higher than the latest tag (gt, 
+                                // gte, lt, lte, eq, neq)
       },
       // 'bump': increment manifest.version and synchronize other JSON files
       bump: {
@@ -197,7 +201,7 @@ grunt.initConfig({
       push: {
         target: '',             // E.g. 'upstream'
         tags: false,            // Also push tags
-        useFollowTags: false,   // Use `--folow-tags` instead of `&& push --tags`
+        useFollowTags: true,    // Use `--folow-tags` instead of `&& push --tags`
       },
       // 'npmPublish': Submit to npm repository
       npmPublish: {

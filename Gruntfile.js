@@ -42,11 +42,11 @@ module.exports = function(grunt) {
         common: { // defaults for all tools
         },
         run: { tasks: ['jshint'] },
-        check: { clean: true, branch: ['master'] },
+        check: { branch: ['master'], canPush: true, clean: true, cmpVersion: 'gte' },
         bump: {},
         commit: {},
         tag: {},
-        push: { tags: true, useFollowTags: true },
+        push: { tags: true },
         githubRelease: {
           repo: "mar10/grunt-yabs",
           draft: false,
