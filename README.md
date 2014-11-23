@@ -52,13 +52,16 @@ grunt.initConfig({
 
       // Assert that we are on the main branch, and everything is commited
       // Do a dry-run push and make sure, that we are not behind the latest tag
-      check: { branch: ['master'], canPush: true, clean: true, cmpVersion: 'gt' },
+      check: { branch: ['master'], canPush: true, clean: true, 
+        cmpVersion: 'gt' },
 
       // Bump and synchronize `version` info in the manifests listed above.
-      // 'bump' also uses the increment mode passed like `$ grunt yabs:release:MODE`
+      // 'bump' also uses the increment mode passed like 
+      // `$ grunt yabs:release:MODE`
       bump: {},
 
-      // Run some compile task (build, compress, LESS, ...) and jshint the result.
+      // Run some compile task (build, compress, LESS, ...) and jshint the 
+      // result.
       // Any complex build task from your Gruntfile can be triggered here:
       run_build: { tasks: ['compile', 'jshint:dist'] },
 
@@ -93,6 +96,11 @@ $ grunt yabs:release:patch
 ```
 where `patch` is the increment mode that would bump 1.2.2 -> 1.2.3. (There is 
 also `minor`, `major`, and others. See below.)
+
+See also 
+[ui-contextmenu](https://github.com/mar10/jquery-ui-contextmenu/blob/master/Gruntfile.coffee)
+and [Fancytree](https://github.com/mar10/fancytree/blob/master/Gruntfile.coffee) 
+for real-world examples.
 
 
 ## Getting Started
@@ -159,8 +167,20 @@ grunt.initConfig({
         manifests: ['package.json'], // First entry is master for synchronizing
       },
 
-      // The following tools are executed in order of appearance:
+      // The following tools are available. They are executed in the order 
+      // as they are added to the workflow object.
 
+      // 'bump': increment manifest.version and synchronize other JSON files
+      bump: {
+        // bump also requires a mode argument (yabs:target:MODE)
+        inc: null,              // Override 'yabs:target:MODE'
+        space: 2,               // Indentation used when writing JSON files
+        syncVersion: true,      // Only increment master manifest, then copy 
+                                // version to secondaries
+        syncFields: [],         // Synchronize entries from master to 
+                                // secondaries (if field exists)
+        updateConfig: 'pkg',    // Make sure pkg.version contains the new value
+      },
       // 'check': Assert preconditons and fail otherwise
       check: {
         branch: ['master'],     // Current branch must be in this list
@@ -170,43 +190,11 @@ grunt.initConfig({
                                 // version is higher than the latest tag (gt, 
                                 // gte, lt, lte, eq, neq)
       },
-      // 'bump': increment manifest.version and synchronize other JSON files
-      bump: {
-        // bump also requires a mode argument (yabs:target:MODE)
-        inc: null,              // Override 'yabs:target:MODE'
-        syncVersion: true,      // Only increment master manifest, then copy 
-                                // version to secondaries
-        syncFields: [],         // Synchronize entries from master to 
-                                // secondaries (if field exists)
-        space: 2,               // Indentation used when writing JSON files
-        updateConfig: 'pkg',    // Make sure pkg.version contains the new value
-      },
-      // 'run': Run arbitrary grunt tasks
-      run: {
-        tasks: [], // (Tasks must be defined in the current Gruntfile)
-        silent: false,          // `true`: suppress output
-      },
       // 'commit': Commit modified files
       commit: {
         add: [],                // Also `git add` these files ('.' for all)
         addKnown: true,         // Commit with -a flag
         message: 'Bumping version to {%= version %}',
-      },
-      // 'tag': Create an annotated tag
-      tag: {
-        name: 'v{%= version %}',
-        message: 'Version {%= version %}',
-      },
-      // 'push': Push changes and tags
-      push: {
-        target: '',             // E.g. 'upstream'
-        tags: false,            // Also push tags
-        useFollowTags: false,   // Use `--folow-tags` instead of `&& push --tags`
-                                // (requires git 1.8.3+)
-      },
-      // 'npmPublish': Submit to npm repository
-      npmPublish: {
-        message: 'Released {%= version %}',
       },
       // 'githubRelease': Create a release on GitHub
       githubRelease: {
@@ -216,6 +204,27 @@ grunt.initConfig({
         body: 'Released {%= version %}',
         draft: true,
         prerelease: false,
+      },
+      // 'npmPublish': Submit to npm repository
+      npmPublish: {
+        message: 'Released {%= version %}',
+      },
+      // 'push': Push changes and tags
+      push: {
+        target: '',             // E.g. 'upstream'
+        tags: false,            // Also push tags
+        useFollowTags: false,   // Use `--folow-tags` instead of `&& push --tags`
+                                // (requires git 1.8.3+)
+      },
+      // 'run': Run arbitrary grunt tasks
+      run: {
+        tasks: [], // (Tasks must be defined in the current Gruntfile)
+        silent: false,          // `true`: suppress output
+      },
+      // 'tag': Create an annotated tag
+      tag: {
+        name: 'v{%= version %}',
+        message: 'Version {%= version %}',
       },
   }
 });
