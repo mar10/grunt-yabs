@@ -97,8 +97,78 @@ $ grunt yabs:release:patch
 where `patch` is the increment mode that would bump 1.2.2 -> 1.2.3. (There is 
 also `minor`, `major`, and others. See below.)
 
+## Example output for [ui-contextmenu](https://github.com/mar10/jquery-ui-contextmenu/blob/master/Gruntfile.coffee):
+
+```
+$ cd <your project>
+$ grunt yabs:release:patch
+Running "yabs:release:patch" (yabs) task
+>> Current branch "master" in allowed list: "master".
+>> Repository is clean.
+>> "git push" would succeed.
+>> Current version (1.8.2-0) is `gte` latest tag (1.8.1).
+Run task "test"...
+Running "jshint:files" (jshint) task
+>> 2 files lint free.
+
+Running "jscs:src" (jscs) task
+>> 2 files without code style errors.
+
+Running "qunit:all" (qunit) task
+Testing test/index.html .........OK
+Testing test/index-jquery-ui-1-10.html .........OK
+>> 148 assertions passed (10820ms)
+
+Done, without errors.
+>> Run task "test".
+>> Updated config.pkg.version to 1.8.2
+Bumping version in package.json from 1.8.2-0 to 1.8.2...OK
+Bumping version in bower.json from 1.8.2-0 to 1.8.2...OK
+Bumping version in ui-contextmenu.jquery.json from 1.8.2-0 to 1.8.2...OK
+Run task "build"...
+Running "exec:tabfix" (exec) task
+
+Modified 0/2828 lines, 0/15 files in 263 folders, skipped: 0
+         96837 bytes -> 96837 bytes (+0%), elapsed: 0.111 sec
+
+Running "jshint:files" (jshint) task
+>> 2 files lint free.
+
+Running "jscs:src" (jscs) task
+>> 2 files without code style errors.
+
+Running "qunit:all" (qunit) task
+Testing test/index.html .........OK
+Testing test/index-jquery-ui-1-10.html .........OK
+>> 148 assertions passed (11562ms)
+
+Running "uglify:build" (uglify) task
+>> 1 sourcemap created.
+>> 1 file created.
+
+Done, without errors.
+>> Run task "build".
+>> Commited "Bumping version to 1.8.2"
+>> Current branch "master" in allowed list: "master".
+>> Repository is clean.
+>> Created tag v1.8.2: "Version 1.8.2"
+>> Pushed  (with tags).
+>> Created GitHub release mar10/jquery-ui-contextmenu v1.8.2.
+>> Published to npm.
+>> Updated config.pkg.version to 1.8.3-0
+Bumping version in package.json from 1.8.2 to 1.8.3-0...OK
+Bumping version in bower.json from 1.8.2 to 1.8.3-0...OK
+Bumping version in ui-contextmenu.jquery.json from 1.8.2 to 1.8.3-0...OK
+>> Commited "Bump prerelease (1.8.3-0) [ci skip]"
+>> Pushed  (no tags).
+
+Done, without errors.
+$
+```
+
 See also 
-[ui-contextmenu](https://github.com/mar10/jquery-ui-contextmenu/blob/master/Gruntfile.coffee)
+[grunt-yabs](https://github.com/mar10/grunt-yabs/blob/master/Gruntfile.js),
+[ui-contextmenu](https://github.com/mar10/jquery-ui-contextmenu/blob/master/Gruntfile.coffee),
 and [Fancytree](https://github.com/mar10/fancytree/blob/master/Gruntfile.coffee) 
 for real-world examples.
 
