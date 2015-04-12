@@ -1,4 +1,4 @@
-# grunt-yabs [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
+# grunt-yabs [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/) [![Reference Status](https://www.versioneye.com/nodejs/grunt-yabs/reference_badge.svg?style=flat)](https://www.versioneye.com/nodejs/grunt-yabs/references)
 
 > Collection of tools for grunt release workflows (using git).
 
