@@ -271,7 +271,8 @@ grunt.initConfig({
         repo: null,             // 'owner/repo'
         auth: {usernameVar: 'GITHUB_USERNAME', passwordVar: 'GITHUB_PASSWORD'},
         name: 'v{%= version %}',
-        body: 'Released {%= version %}',
+        body: 'Released {%= version %}\n' +
+            '[Commit details](https://github.com/{%= repo %}/compare/{%= currentTagName %}...{%= lastTagName %}).',
         draft: true,
         prerelease: false,
       },
@@ -306,4 +307,5 @@ Add unit tests for any new or changed functionality. Lint and test your code usi
 [Grunt](http://gruntjs.com/).
 
 ## Release History
+* 2014-09-09   v0.3.0   Use in production.
 * 2014-06-20   v0.0.0   Work in progress, use at your own risk.

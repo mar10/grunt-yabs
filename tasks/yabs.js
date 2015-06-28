@@ -11,7 +11,7 @@
  *   - https://github.com/Darsain/grunt-checkrepo
  *   - https://github.com/dymonaz/grunt-checkbranch
  *
- * Copyright (c) 2014 Martin Wendt
+ * Copyright (c) 2014-2015 Martin Wendt
  * Licensed under the MIT license.
  */
 
@@ -95,7 +95,8 @@ module.exports = function(grunt) {
 //    tagName: 'v1.0.0',
 //    targetCommitish: null, //'master',
       name: 'v{%= version %}',
-      body: 'Released {%= version %}',
+      body: 'Released {%= version %}\n' +
+          '[Commit details](https://github.com/{%= repo %}/compare/{%= currentTagName %}...{%= lastTagName %}).',
       draft: true,
       prerelease: false,
 //    files: [],
@@ -123,12 +124,27 @@ module.exports = function(grunt) {
     });
   }
 
-  /***/ 
+  /** Read .json file (once) and store in cache. */ 
   function readJsonCached(cache, filepath, reload){
     if( reload || !cache[filepath] ) {
       cache[filepath] = grunt.file.readJSON(filepath);
     }
     return cache[filepath];
+  }
+
+  /**  */ 
+  function getCurrentTagNameCached(opts, data, reload){
+    if( reload || !data.currentTagName ) {
+      // Get new tags from the remote
+      var result = exec(opts, 'git fetch --tags', {always: true });
+      // Get the latest tag name
+      result = exec(opts, 'git rev-list --tags --max-count=1', {always: true });
+      result = exec(opts, 'git describe --tags ' + result.output.trim(), {always: true });
+      result = result.output.trim();
+      // data.currentTagName = semver.valid(result);
+      data.currentTagName = result;
+    }
+    return data.currentTagName;
   }
 
   /** Execute shell command (synchronous). */
@@ -186,6 +202,7 @@ module.exports = function(grunt) {
       completedTools: [],
       origVersion: null,
       version: null,
+      lastTag: null,
     };
     // This task runs 
     var done = grunt.task.current.async();
@@ -217,6 +234,8 @@ module.exports = function(grunt) {
         var manifest = readJsonCached(data.manifestCache, toolOptions.manifests[0]);
         data.version = data.origVersion = semver.valid(manifest.version);
       }
+      // Store current latest tag
+      data.currentTagName = getCurrentTagNameCached(toolOptions, data);
       // Queue a runner function that calls a tool and returns a promise
       q = q.then(makeToolRunner(tooltype, toolname, toolOptions, data));
     }
@@ -234,7 +253,7 @@ module.exports = function(grunt) {
    * Assert preconditions and fail otherwise.
    */
   tool_handlers.check = function(deferred, opts, data) {
-    var flag, latestTag, result, valid, 
+    var flag, latestVersion, result, valid, 
         errors = 0;
 
     makeArrayOpt(opts, 'branch');
@@ -285,17 +304,19 @@ module.exports = function(grunt) {
     }
     if( opts.cmpVersion != null ){
       // Get new tags from the remote
-      result = exec(opts, 'git fetch --tags', {always: true });
-      // Get the latest tag name
-      result = exec(opts, 'git rev-list --tags --max-count=1', {always: true });
-      result = exec(opts, 'git describe --tags ' + result.output.trim(), {always: true });
-      latestTag = semver.valid(result.output.trim());
+      // result = exec(opts, 'git fetch --tags', {always: true });
+      // // Get the latest tag name
+      // result = exec(opts, 'git rev-list --tags --max-count=1', {always: true });
+      // result = exec(opts, 'git describe --tags ' + result.output.trim(), {always: true });
+      // latestVersion = semver.valid(result.output.trim());
+      latestVersion = getCurrentTagNameCached(opts, data);
+      latestVersion = semver.valid(latestVersion);
       // TODO: requires  semver v4.0.0:
-//    if( semver.cmp(data.version, opts.cmpVersion, latestTag) ) { 
-      if( semver[opts.cmpVersion](data.version, latestTag) ) {
-        grunt.log.ok('Current version (' + data.version + ') is `' + opts.cmpVersion + '` latest tag (' + latestTag   + ').');
+//    if( semver.cmp(data.version, opts.cmpVersion, latestVersion) ) { 
+      if( semver[opts.cmpVersion](data.version, latestVersion) ) {
+        grunt.log.ok('Current version (' + data.version + ') is `' + opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
       } else {
-        grunt.log.error('Current version (' + data.version + ') is NOT `' + opts.cmpVersion + '` latest tag (' + latestTag   + ').');
+        grunt.log.error('Current version (' + data.version + ') is NOT `' + opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
         errors += 1;
       }
     }
@@ -454,6 +475,7 @@ module.exports = function(grunt) {
    * Create a release on Github
    */
   tool_handlers.githubRelease = function(deferred, opts, data) {
+    data.repo = opts.repo; // make this option available for template expansion
     var body = processTemplate(opts.body, data);
     var name = processTemplate(opts.name, data);
     var tagName = opts.tagName ? processTemplate(opts.tagName, data) : data.lastTagName;
