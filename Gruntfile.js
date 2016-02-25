@@ -2,7 +2,7 @@
  * grunt-yabs
  * https://github.com/martin/grunt-yabs
  *
- * Copyright (c) 2014-2015 Martin Wendt
+ * Copyright (c) 2014-2016 Martin Wendt
  * Licensed under the MIT license.
  */
 
