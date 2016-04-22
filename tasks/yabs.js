@@ -132,17 +132,24 @@ module.exports = function(grunt) {
     return cache[filepath];
   }
 
-  /**  */ 
+  /** Return (and store) name of lates repository tag ('0.0.0' if none found) */ 
   function getCurrentTagNameCached(opts, data, reload){
     if( reload || !data.currentTagName ) {
       // Get new tags from the remote
-      var result = exec(opts, 'git fetch --tags', {always: true });
-      // Get the latest tag name
-      result = exec(opts, 'git rev-list --tags --max-count=1', {always: true });
-      result = exec(opts, 'git describe --tags ' + result.output.trim(), {always: true });
-      result = result.output.trim();
-      // data.currentTagName = semver.valid(result);
-      data.currentTagName = result;
+      var result = exec(opts, 'git fetch --tags', {always: true});
+      // #3: check if we have any tags
+      result = exec(opts, 'git tag --list', {always: true});
+      if( result.output.trim() === '' ) {
+        data.currentTagName = "v0.0.0";
+        grunt.log.warn('Repository does not have any tags: assuming "' + data.currentTagName + '"');
+      } else {      
+        // Get the latest tag name
+        result = exec(opts, 'git rev-list --tags --max-count=1', {always: true});
+        result = exec(opts, 'git describe --tags ' + result.output.trim(), {always: true});
+        result = result.output.trim();
+        // data.currentTagName = semver.valid(result);
+        data.currentTagName = result;
+      }
     }
     return data.currentTagName;
   }
