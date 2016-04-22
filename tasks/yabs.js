@@ -356,40 +356,51 @@ module.exports = function(grunt) {
     }
 
     // Process all JSON manifests
-    var masterManifest = null; //opts._data.masterManifest;
+    var masterManifest = null;
     var isFirst = true;
 
     opts.manifests.forEach(function(filepath) {
       var manifest = readJsonCached(data.manifestCache, filepath);
+
       var origVersion = semver.valid(manifest.version);
-      if( !origVersion ){
+      if( !origVersion && (isFirst || manifest.version) ) {
+        // #4: master manifest must have a valid version, but we accept missing
+        // version fields in secondaries
         grunt.fail.fatal('Invalid version "' + manifest.version + '" in ' + filepath);
       }
 
-      if(isFirst) {
+      if( isFirst ) {
         masterManifest = manifest;
         data.origVersion = masterManifest.version;
       }
-      if( mode !== 'zero' ) {
-        if( isFirst || !opts.syncVersion ) {
-          manifest.version = semver.inc(origVersion, mode);
-        }else{
+      if( origVersion ) {
+        // This is ether the master manifest, or a secondary with existing version field:
+        // Store master version and sync secondaries
+        if( mode !== 'zero' ) {
+          if( isFirst || !opts.syncVersion ) {
+            manifest.version = semver.inc(origVersion, mode);
+          }else{
+            manifest.version = masterManifest.version;
+          }
+        }else if( !isFirst && opts.syncVersion ) {
+          // don't bump, but sync in 'zero' mode
           manifest.version = masterManifest.version;
         }
-      }else if( !isFirst && opts.syncVersion ) {
-        // don't bump, but sync in 'zero' mode
-        manifest.version = masterManifest.version;
-      }
-      data.version = masterManifest.version;
+        data.version = masterManifest.version;
 
-      if( isFirst && opts.updateConfig ){
-        if( grunt.config(opts.updateConfig) ){
-          grunt.config(opts.updateConfig + '.version', masterManifest.version);
-          grunt.log.ok('Updated config.' + opts.updateConfig + '.version to ' + masterManifest.version);
-        }else{
-          grunt.fail.warn('Cannot update config.' + opts.updateConfig + ' (does not exist)');
+        if( isFirst && opts.updateConfig ){
+          if( grunt.config(opts.updateConfig) ){
+            grunt.config(opts.updateConfig + '.version', masterManifest.version);
+            grunt.log.ok('Updated config.' + opts.updateConfig + '.version to ' + masterManifest.version);
+          }else{
+            grunt.fail.warn('Cannot update config.' + opts.updateConfig + ' (does not exist)');
+          }
+          // grunt.log.writeln(JSON.stringify(grunt.config(opts.updateConfig)));
         }
-        // grunt.log.writeln(JSON.stringify(grunt.config(opts.updateConfig)));
+        grunt.log.write('Bumping version in ' + filepath + ' from ' + origVersion + ' to ' + manifest.version + '...');
+      } else {
+        // #4: don't try to bump secondaries if they don't have a version field
+        grunt.log.warn('Not bumping secondary manifest with missing version field: ' + filepath);
       }
       if( !isFirst && opts.syncFields.length ){
         opts.syncFields.forEach(function(field){
@@ -399,7 +410,6 @@ module.exports = function(grunt) {
           }
         });
       }
-      grunt.log.write('Bumping version in ' + filepath + ' from ' + origVersion + ' to ' + manifest.version + '...');
       if( !opts.noWrite ){
         grunt.file.write(filepath, JSON.stringify(manifest, null, opts.space));
         // delete data.manifestCache[filepath]; // out-of-date now
