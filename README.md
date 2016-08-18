@@ -17,7 +17,7 @@ Because
 ## Status
 [![NPM version](https://badge.fury.io/js/grunt-yabs.png)](#)
 
-Beta - *Might Work*.<br>
+Production - *Should Work*.<br>
 Let me know if you find bugs or have suggestions.<br>
 [Review the code](https://github.com/mar10/grunt-yabs/blob/master/tasks/yabs.js)
 if you like.
@@ -169,12 +169,13 @@ $
 See also 
 [grunt-yabs](https://github.com/mar10/grunt-yabs/blob/master/Gruntfile.js),
 [ui-contextmenu](https://github.com/mar10/jquery-ui-contextmenu/blob/master/Gruntfile.coffee),
+[persisto](https://github.com/mar10/persisto/blob/master/Gruntfile.coffee),
 and [Fancytree](https://github.com/mar10/fancytree/blob/master/Gruntfile.coffee) 
 for real-world examples.
 
 
 ## Getting Started
-This plugin requires Grunt `~0.4.5`
+This plugin requires Grunt `>=0.4.0`
 
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
 

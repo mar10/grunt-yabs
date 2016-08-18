@@ -1,4 +1,7 @@
-# 1.0.1-0 / Unreleased
+# 1.0.2-0 / Unreleased
+
+# 1.0.1 / 2016-08-18
+  * Fixed compatibility problem with updated superagent
 
 # 1.0.0 / 2016-08-18
   * Bump dependencies to grunt ^1.0
