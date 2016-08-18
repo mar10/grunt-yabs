@@ -1,4 +1,10 @@
-# 0.5.1-0 / Unreleased
+# 1.0.0-0 / Unreleased
+
+# 0.6.1 / 2016-08-16
+  * Bump dependencies to grunt ^1.0
+  * Update to latest versions of semver, lodash, shelljs, superagent, q
+
+# 0.6.0 / 2016-04-22
   * #3: Assume v0.0.0 (instead of failing) if repo has no tags
   * #4: Fix error when secondary manifest does not contain a version tag
 

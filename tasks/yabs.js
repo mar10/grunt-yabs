@@ -132,21 +132,22 @@ module.exports = function(grunt) {
     return cache[filepath];
   }
 
-  /** Return (and store) name of lates repository tag ('0.0.0' if none found) */ 
+  /** Return (and store) name of latest repository tag ('0.0.0' if none found) */ 
   function getCurrentTagNameCached(opts, data, reload){
     if( reload || !data.currentTagName ) {
       // Get new tags from the remote
       var result = exec(opts, 'git fetch --tags', {always: true});
       // #3: check if we have any tags
       result = exec(opts, 'git tag --list', {always: true});
-      if( result.output.trim() === '' ) {
+
+      if( result.stdout.trim() === '' ) {
         data.currentTagName = "v0.0.0";
         grunt.log.warn('Repository does not have any tags: assuming "' + data.currentTagName + '"');
       } else {      
         // Get the latest tag name
         result = exec(opts, 'git rev-list --tags --max-count=1', {always: true});
-        result = exec(opts, 'git describe --tags ' + result.output.trim(), {always: true});
-        result = result.output.trim();
+        result = exec(opts, 'git describe --tags ' + result.stdout.trim(), {always: true});
+        result = result.stdout.trim();
         // data.currentTagName = semver.valid(result);
         data.currentTagName = result;
       }
@@ -163,8 +164,12 @@ module.exports = function(grunt) {
     } else {
       grunt.verbose.writeln('Running: ' + cmd);
       var result = shell.exec(cmd, {silent: silent});
+
+      // grunt.verbose.writeln('exec(' + cmd + ') returning code ' + result.code +
+      //   ', result: ' + result.stdout);
       if (extra.checkResultCode !== false && result.code !== 0) {
-        grunt.fail.warn('exec(' + cmd + ') failed with code ' + result.code + ':\n' + result.output);
+        grunt.fail.warn('exec(' + cmd + ') failed with code ' + result.code +
+          ':\n' + result.stdout);
       }else{
         return result;
       }
@@ -220,7 +225,7 @@ module.exports = function(grunt) {
     for(var toolname in workflowOpts){
       if( toolname === 'common' ) { continue; }
       var tooltype = toolname.match(/^([^_]*)/)[1];
-      if( !_.contains(KNOWN_TOOLS, tooltype) ){
+      if( !_.includes(KNOWN_TOOLS, tooltype) ){
         grunt.fail.warn('Tool "' + toolname + '" is not of a known type (' + KNOWN_TOOLS.join(', ') + ').');
       }
       var toolOptions = lodash.merge(
@@ -267,7 +272,7 @@ module.exports = function(grunt) {
 
     if( opts.branch.length ){
       result = exec(opts, 'git rev-parse --abbrev-ref HEAD', { always: true });
-      var branch = result.output.trim();
+      var branch = result.stdout.trim();
       valid = false;
       opts.branch.forEach(function(b){
         if( b === branch ) {
@@ -305,7 +310,8 @@ module.exports = function(grunt) {
       if( flag === (result.code === 0) ) {
         grunt.log.ok('"git push" would ' + (flag ? 'succeed' : 'fail') + '.');
       }else{
-        grunt.log.error('Repository is ' + (flag ? 'not ' : '') + 'pushable: ' + result.output.trim());
+        grunt.log.error('Repository is ' + (flag ? 'not ' : '') + 'pushable: ' +
+          result.stdout.trim());
         errors += 1;
       }
     }
@@ -314,8 +320,8 @@ module.exports = function(grunt) {
       // result = exec(opts, 'git fetch --tags', {always: true });
       // // Get the latest tag name
       // result = exec(opts, 'git rev-list --tags --max-count=1', {always: true });
-      // result = exec(opts, 'git describe --tags ' + result.output.trim(), {always: true });
-      // latestVersion = semver.valid(result.output.trim());
+      // result = exec(opts, 'git describe --tags ' + result.stdout.trim(), {always: true });
+      // latestVersion = semver.valid(result.stdout.trim());
       latestVersion = getCurrentTagNameCached(opts, data);
       latestVersion = semver.valid(latestVersion);
       // TODO: requires  semver v4.0.0:
@@ -348,10 +354,10 @@ module.exports = function(grunt) {
  
     if( !mode ) {
       grunt.fail.fatal('Please specify a mode (' + MODES.join(', ') + ').');
-    }else if( ! _.contains(MODES, mode) ) {
+    }else if( ! _.includes(MODES, mode) ) {
       grunt.fail.fatal('Unsupported mode "' + mode + '" (expected ' + MODES.join(', ') + ').');
     }
-    if( _.contains(opts.syncFields, 'version') ) {
+    if( _.includes(opts.syncFields, 'version') ) {
       grunt.fail.fatal('Use "bump.syncVersions: true" instead of bump.syncFields["version"].');
     }
 
