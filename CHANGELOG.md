@@ -1,6 +1,6 @@
-# 1.0.0-0 / Unreleased
+# 1.0.1-0 / Unreleased
 
-# 0.6.1 / 2016-08-16
+# 1.0.0 / 2016-08-18
   * Bump dependencies to grunt ^1.0
   * Update to latest versions of semver, lodash, shelljs, superagent, q
 
