@@ -132,6 +132,27 @@ module.exports = function(grunt) {
     return cache[filepath];
   }
 
+  /** Execute shell command (synchronous). */
+  function exec(opts, cmd, extra) {
+    extra = extra || {};
+    var silent = (extra.silent !== false); // Silent, unless explicitly passed `false`
+    if ( opts.noWrite && extra.always !== true) {
+      grunt.log.writeln('DRY-RUN: would exec: ' + cmd);
+    } else {
+      grunt.verbose.writeln('Running: ' + cmd);
+      var result = shell.exec(cmd, {silent: silent});
+
+      // grunt.verbose.writeln('exec(' + cmd + ') returning code ' + result.code +
+      //   ', result: ' + result.stdout);
+      if (extra.checkResultCode !== false && result.code !== 0) {
+        grunt.fail.warn('exec(' + cmd + ') failed with code ' + result.code +
+          ':\n' + result.stdout);
+      }else{
+        return result;
+      }
+    }
+  }
+
   /** Return (and store) name of latest repository tag ('0.0.0' if none found) */ 
   function getCurrentTagNameCached(opts, data, reload){
     if( reload || !data.currentTagName ) {
@@ -153,27 +174,6 @@ module.exports = function(grunt) {
       }
     }
     return data.currentTagName;
-  }
-
-  /** Execute shell command (synchronous). */
-  function exec(opts, cmd, extra) {
-    extra = extra || {};
-    var silent = (extra.silent !== false); // Silent, unless explicitly passed `false`
-    if ( opts.noWrite && extra.always !== true) {
-      grunt.log.writeln('DRY-RUN: would exec: ' + cmd);
-    } else {
-      grunt.verbose.writeln('Running: ' + cmd);
-      var result = shell.exec(cmd, {silent: silent});
-
-      // grunt.verbose.writeln('exec(' + cmd + ') returning code ' + result.code +
-      //   ', result: ' + result.stdout);
-      if (extra.checkResultCode !== false && result.code !== 0) {
-        grunt.fail.warn('exec(' + cmd + ') failed with code ' + result.code +
-          ':\n' + result.stdout);
-      }else{
-        return result;
-      }
-    }
   }
 
   /** Call tool handler with its aggregated options. */
