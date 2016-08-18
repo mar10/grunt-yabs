@@ -529,12 +529,12 @@ module.exports = function(grunt) {
       .set('Accept', 'application/vnd.github.manifold-preview')
       .set('User-Agent', 'grunt-yabs')
       .send(sendArgs)
-      .end(function(res){
-        if( res.statusCode === 201 ) {
+      .end(function(err, res){
+        if( res.status === 201 ) {
           grunt.log.ok('Created GitHub release ' + opts.repo + ' ' + tagName + '.');
           deferred.resolve();
         } else {
-          grunt.fail.warn('Error creating GitHub release: ' + res.statusCode + " " + res.text);
+          grunt.fail.warn('Error creating GitHub release: ' + res.status + " " + res.text);
           deferred.reject(res.text);
         }
       });
