@@ -17,6 +17,7 @@
 
 'use strict';
 
+var Applause = require('applause');
 var lodash = require('lodash');
 var Q = require('q');
 var request = require('superagent');
@@ -28,7 +29,7 @@ module.exports = function(grunt) {
 
   var _ = lodash;
   var tool_handlers = {};
-  var KNOWN_TOOLS = 'bump check commit exec githubRelease npmPublish push run tag'.split(' ');
+  var KNOWN_TOOLS = 'bump check commit exec githubRelease npmPublish push replace run tag'.split(' ');
   var DEFAULT_OPTIONS = {
     common: { // options used as default for all tools
       args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
@@ -50,6 +51,15 @@ module.exports = function(grunt) {
                                 // gte, lt, lte, eq, neq)
 //      allowDirty: [],
 //      isPrerelease: undefined,
+    },
+    // 'replace': In-place string replacements (uses https://github.com/outaTiME/applause).
+    replace: {
+      files: null,              // minimatch globbing pattern
+      patterns: [],             // See https://github.com/outaTiME/applause
+      // Shortcut patterns (pass false to disable):
+      setTimestamp: "{%= grunt.template.today('isoUtcDateTime') %}",
+                                    // Replace '@@timestamp' with current time
+      setVersion: '{%= version %}', // Replace '@@version' with current version
     },
     // 'bump': increment manifest.version and synchronize with other JSON files.
     bump: {
@@ -339,6 +349,56 @@ module.exports = function(grunt) {
     // grunt.log.writeln('EC: ' + grunt.task.errorCount); 
     if ( errors  > 0 ) {
       grunt.fail.warn(errors + grunt.util.pluralize(errors, ' check failed./checks failed.'))  ;
+    }
+    deferred.resolve();
+  };
+
+  /*****************************************************************************
+   * Replace strings (uses https://github.com/outaTiME/applause).
+   */
+  tool_handlers.replace = function(deferred, opts, data) {
+    var file;
+    var replace_file_count = 0;
+    var match_count = 0;
+
+    grunt.log.writeln('Replace task "' + opts.files + '"...');
+
+    if( !opts.files ) {
+      grunt.fail.fatal('Please specify a file pattern (' + opts.files + ').');
+    }
+    if( opts.setTimestamp ) {
+      opts.patterns.push({ match: 'timestamp', replacement: processTemplate("" + opts.setTimestamp, data) });
+    }
+    if( opts.setVersion ) {
+      opts.patterns.push({ match: 'version', replacement: processTemplate("" + opts.setVersion, data) });
+    }
+    var applause = Applause.create({patterns: opts.patterns});
+    var files = grunt.file.expand(opts.files);
+    for(var i=0; i<files.length; i++) {
+      file = files[i];
+
+      var contents = grunt.file.read(file, {encoding: 'utf8'});
+      var result = applause.replace(contents);
+      if( result.content ) {
+        replace_file_count += 1;
+        match_count += result.count;
+        if( opts.noWrite ) {
+          grunt.log.ok('DRY-RUN: Replaced ' + result.count + ' occurences in ' + file + ':');
+        } else {
+          grunt.file.write(file, result.content);
+          grunt.log.ok('Replaced ' + result.count + ' occurences in ' + file + ':');
+        }
+        /* jshint -W083 */ // Don't make functions within a loop.
+        result.detail.forEach(function(o) {
+          grunt.log.writeln('    ' + o.match + ' => "' + o.replacement + '"');
+        });
+        /* jshint +W083 */
+      }
+    }
+    if( replace_file_count ) {
+      grunt.log.ok('Replaced ' + match_count + ' matches in ' + replace_file_count + ' / ' + files.length + ' files.');
+    } else {
+      grunt.log.warn('No text was replaced in ' + files.length + ' files.');
     }
     deferred.resolve();
   };

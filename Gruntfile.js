@@ -38,6 +38,11 @@ module.exports = function(grunt) {
       //     manifests: ['package.json', 'testbower.json'],
       //   },
       // },
+      // test1: {
+      //   run: { tasks: ['jshint'] },
+      //   //check: { branch: ['master'], canPush: true, clean: true, cmpVersion: 'gte' },
+      //   replace: { files: ['./test/*.txt'] },
+      // },
       release: {
         common: { // defaults for all tools
         },
