@@ -175,6 +175,7 @@ for real-world examples.
 
 
 ## Getting Started
+
 This plugin requires Grunt `>=0.4.0`
 
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
@@ -216,6 +217,7 @@ $ grunt yabs:myworkflow:patch --no-write --vebose
 
 
 ### Available Options
+
 Available tools and their default options:
 
 ```js
@@ -254,6 +256,8 @@ grunt.initConfig({
       },
       // 'check': Assert preconditons and fail otherwise
       check: {
+        allowedModes: null,     // Optionally restrict yabs:target:MODE to this
+                                   value(s). Useful for maintenance branches.
         branch: ['master'],     // Current branch must be in this list
         canPush: undefined,     // Test if 'git push' would/would not succeed
         clean: undefined,       // Repo must/must not contain modifications? 
@@ -302,11 +306,9 @@ grunt.initConfig({
 });
 ```
 
+
 ## Contributing
+
 In lieu of a formal styleguide, take care to maintain the existing coding style. 
 Add unit tests for any new or changed functionality. Lint and test your code using 
 [Grunt](http://gruntjs.com/).
-
-## Release History
-* 2014-09-09   v0.3.0   Use in production.
-* 2014-06-20   v0.0.0   Work in progress, use at your own risk.

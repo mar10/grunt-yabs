@@ -43,6 +43,8 @@ module.exports = function(grunt) {
 
     // 'check': Assert preconditons and fail otherwise
     check: {
+      allowedModes: null,       // Optionally restrict yabs:target:MODE to this
+                                // value(s). Useful for maintenance branches.
       branch: ['master'],       // Current branch must be in this list
       canPush: undefined,       // Test if 'git push' would/would not succeed
       clean: undefined,         // Repo must/must not contain modifications?
@@ -294,6 +296,20 @@ module.exports = function(grunt) {
   tool_handlers.check = function(deferred, opts, data) {
     var flag, latestVersion, result, valid, 
         errors = 0;
+
+    if( opts.allowedModes ){
+      makeArrayOpt(opts, 'allowedModes');
+      var mode = (data.args.length ? data.args[0] : null);
+      valid = _.includes(opts.allowedModes, mode);
+      if( !valid ) {
+        grunt.log.error('FAIL: Current mode "' + mode + '" not in allowed list: "' +
+            opts.allowedModes.join('", "') + '".');
+        errors += 1;
+      }else{
+        grunt.log.ok('OK: Current mode "' + mode + '" in allowed list: "' +
+            opts.allowedModes.join('", "') + '".');
+      }
+    }
 
     makeArrayOpt(opts, 'branch');
 
