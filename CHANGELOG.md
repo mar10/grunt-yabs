@@ -1,4 +1,7 @@
-# 1.0.2-0 / Unreleased
+# 1.1.0-0 / Unreleased
+  * Add `check.allowedModes` option
+  * Check for invalid command line arguments
+  * Improve output
 
 # 1.0.1 / 2016-08-18
   * Fixed compatibility problem with updated superagent

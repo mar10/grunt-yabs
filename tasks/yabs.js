@@ -30,9 +30,10 @@ module.exports = function(grunt) {
   var _ = lodash;
   var tool_handlers = {};
   var KNOWN_TOOLS = 'bump check commit exec githubRelease npmPublish push replace run tag'.split(' ');
+  var KNOWN_ARGS = '--debug --force --no-color --no-write --npm --stack --tasks --verbose'.split(' ');
   var DEFAULT_OPTIONS = {
     common: { // options used as default for all tools
-      args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
+      args: _.toArray(this.args), // Additional args after 'yabs:target:'
       verbose: !!grunt.option('verbose'),
       enable: true,             // 
       noWrite: false,           // true enables dry-run
@@ -43,6 +44,8 @@ module.exports = function(grunt) {
 
     // 'check': Assert preconditons and fail otherwise
     check: {
+      allowedModes: null,       // Optionally restrict yabs:target:MODE to this
+                                // value(s). Useful for maintenance branches.
       branch: ['master'],       // Current branch must be in this list
       canPush: undefined,       // Test if 'git push' would/would not succeed
       clean: undefined,         // Repo must/must not contain modifications?
@@ -134,6 +137,12 @@ module.exports = function(grunt) {
     });
   }
 
+  /** Given str of "a/b", If n is 1, return "a" otherwise "b". */
+  function pluralize(n, str, separator) {
+    var parts = str.split(separator || '/');
+    return n === 1 ? (parts[0] || '') : (parts[1] || '');
+  }
+
   /** Read .json file (once) and store in cache. */ 
   function readJsonCached(cache, filepath, reload){
     if( reload || !cache[filepath] ) {
@@ -213,13 +222,14 @@ module.exports = function(grunt) {
    */
   grunt.registerMultiTask('yabs', 'Collection of tools for grunt release workflows.', function() {
 
+    var start = Date.now();
     var taskOpts = grunt.config(this.name);   // config.yabs
     var workflowOpts = taskOpts[this.target]; // config.yabs.WORKFLOW
     // grunt.verbose.writeln("resulting options" + JSON.stringify(workflowOpts));
 
     // The data object is used to pass data to downstream tools
     var data = {
-      args: grunt.util.toArray(this.args),
+      args: _.toArray(this.args),
       manifestCache: {},
       completedTools: [],
       origVersion: null,
@@ -230,6 +240,23 @@ module.exports = function(grunt) {
     var done = grunt.task.current.async();
     // We use promises in order to serialize asnyc operations like ajax requests.
     var q = new Q();
+
+    // Check command line args
+    if( process.argv.length < 3 || process.argv[2].split(':')[0] !== 'yabs'||
+        process.argv[2].split(':').length !== 3 ) {
+      console.log("argv:", JSON.stringify(process.argv));
+      grunt.fail.fatal('Usage: grunt yabs:target:mode');
+    }
+
+    var flags = grunt.option.flags();
+    for( var i=0; i<flags.length; i++ ) {
+      var flag = flags[i].split('=')[0];
+      if( !_.includes(KNOWN_ARGS, flag) ) {
+        console.log("flags:", JSON.stringify(grunt.option.flags()));
+        grunt.fail.warn('Unsupported command line argument "' + flag +
+          '" (' + KNOWN_ARGS.join(', ') + ').');
+      }
+    }
 
     // Run the tool chain. We assume that property order *is* predictable in V8!
     for(var toolname in workflowOpts){
@@ -264,6 +291,8 @@ module.exports = function(grunt) {
     q.catch(function(msg){
       grunt.fail.warn(msg || 'ERROR: grunt-yabs failed');
     }).finally(function(){
+      grunt.log.writeln('Running ' + data.completedTools.length + ' tools took ' +
+          (0.001 * (Date.now() - start)).toFixed(2) + ' seconds.');
       if( grunt.option('no-write') ) {
         grunt.log.writeln('* DRY-RUN mode: No bits were harmed during the making of this release. *');
       }
@@ -278,6 +307,20 @@ module.exports = function(grunt) {
     var flag, latestVersion, result, valid, 
         errors = 0;
 
+    if( opts.allowedModes ){
+      makeArrayOpt(opts, 'allowedModes');
+      var mode = (data.args.length ? data.args[0] : null);
+      valid = _.includes(opts.allowedModes, mode);
+      if( !valid ) {
+        grunt.log.error('FAIL: Current mode "' + mode + '" not in allowed list: "' +
+            opts.allowedModes.join('", "') + '".');
+        errors += 1;
+      }else{
+        grunt.log.ok('OK: Current mode "' + mode + '" in allowed list: "' +
+            opts.allowedModes.join('", "') + '".');
+      }
+    }
+
     makeArrayOpt(opts, 'branch');
 
     if( opts.branch.length ){
@@ -291,10 +334,12 @@ module.exports = function(grunt) {
         }
       });
       if( !valid ) {
-        grunt.log.error('Current branch "' + branch + '" not in allowed list: "' + opts.branch.join('", "') + '".');
+        grunt.log.error('FAIL: Current branch "' + branch + '" not in allowed list: "' +
+            opts.branch.join('", "') + '".');
         errors += 1;
       }else{
-        grunt.log.ok('Current branch "' + branch + '" in allowed list: "' + opts.branch.join('", "') + '".');
+        grunt.log.ok('OK: Current branch "' + branch + '" in allowed list: "' +
+            opts.branch.join('", "') + '".');
       }
     }
     if( typeof opts.clean === 'boolean' ){
@@ -305,9 +350,9 @@ module.exports = function(grunt) {
           always: true 
         });
       if( flag === (result.code === 0) ) {
-        grunt.log.ok('Repository is ' + (flag ? '' : 'not ') + 'clean.');
+        grunt.log.ok('OK: Repository is ' + (flag ? '' : 'not ') + 'clean.');
       }else{
-        grunt.log.error('Repository has ' + (flag ? '' : 'no ') + 'staged changes.');
+        grunt.log.error('FAIL: Repository has ' + (flag ? '' : 'no ') + 'staged changes.');
         errors += 1;
       }
     }
@@ -318,9 +363,9 @@ module.exports = function(grunt) {
           always: true 
         });
       if( flag === (result.code === 0) ) {
-        grunt.log.ok('"git push" would ' + (flag ? 'succeed' : 'fail') + '.');
+        grunt.log.ok('OK: "git push" would ' + (flag ? 'succeed' : 'fail') + '.');
       }else{
-        grunt.log.error('Repository is ' + (flag ? 'not ' : '') + 'pushable: ' +
+        grunt.log.error('FAIL: Repository is ' + (flag ? 'not ' : '') + 'pushable: ' +
           result.stdout.trim());
         errors += 1;
       }
@@ -337,9 +382,11 @@ module.exports = function(grunt) {
       // TODO: requires  semver v4.0.0:
 //    if( semver.cmp(data.version, opts.cmpVersion, latestVersion) ) { 
       if( semver[opts.cmpVersion](data.version, latestVersion) ) {
-        grunt.log.ok('Current version (' + data.version + ') is `' + opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
+        grunt.log.ok('OK: Current version (' + data.version + ') is `' +
+            opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
       } else {
-        grunt.log.error('Current version (' + data.version + ') is NOT `' + opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
+        grunt.log.error('FAIL: Current version (' + data.version + ') is NOT `' +
+            opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
         errors += 1;
       }
     }
@@ -347,8 +394,8 @@ module.exports = function(grunt) {
     // }
     // doesn't work(?):
     // grunt.log.writeln('EC: ' + grunt.task.errorCount); 
-    if ( errors  > 0 ) {
-      grunt.fail.warn(errors + grunt.util.pluralize(errors, ' check failed./checks failed.'))  ;
+    if ( errors > 0 ) {
+      grunt.fail.warn(errors + ' ' + pluralize(errors, 'check failed./checks failed.'));
     }
     deferred.resolve();
   };
@@ -463,7 +510,8 @@ module.exports = function(grunt) {
           }
           // grunt.log.writeln(JSON.stringify(grunt.config(opts.updateConfig)));
         }
-        grunt.log.write('Bumping version in ' + filepath + ' from ' + origVersion + ' to ' + manifest.version + '...');
+        grunt.log.write('Bumping version in ' + filepath + ' from ' +
+            origVersion + ' to ' + manifest.version + '...');
       } else {
         // #4: don't try to bump secondaries if they don't have a version field
         grunt.log.warn('Not bumping secondary manifest with missing version field: ' + filepath);
@@ -471,7 +519,9 @@ module.exports = function(grunt) {
       if( !isFirst && opts.syncFields.length ){
         opts.syncFields.forEach(function(field){
           if( manifest[field] != null && !lodash.isEqual(masterManifest[field], manifest[field]) ) {
-            grunt.log.writeln('Sync field "' + field + '" in ' + filepath + ' from ' + JSON.stringify(manifest[field]) + ' to ' + JSON.stringify(masterManifest[field]) + '.');
+            grunt.log.writeln('Sync field "' + field + '" in ' + filepath +
+                ' from ' + JSON.stringify(manifest[field]) +
+                ' to ' + JSON.stringify(masterManifest[field]) + '.');
             manifest[field] = masterManifest[field];
           }
         });
