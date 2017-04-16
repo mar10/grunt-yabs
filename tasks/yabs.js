@@ -225,16 +225,15 @@ module.exports = function(grunt) {
     // Check command line args
     if( process.argv.length < 3 || process.argv[2].split(':')[0] !== 'yabs' 
         || process.argv[2].split(':').length !== 3 ) {
-      console.log("argv", JSON.stringify(process.argv));
+      console.log("argv:", JSON.stringify(process.argv));
       grunt.fail.fatal('Usage: grunt yabs:workflow:mode');
     }
 
-    // Check command line args
     var flags = grunt.option.flags();
     for( var i=0; i<flags.length; i++ ) {
       var flag = flags[i].split('=')[0];
       if( !_.includes(KNOWN_ARGS, flag) ) {
-        console.log("args", JSON.stringify(grunt.option.flags()));
+        console.log("flags:", JSON.stringify(grunt.option.flags()));
         grunt.fail.warn('Unsupported command line argument "' + flag +
           '" (' + KNOWN_ARGS.join(', ') + ').');
       }
@@ -300,10 +299,12 @@ module.exports = function(grunt) {
         }
       });
       if( !valid ) {
-        grunt.log.error('Current branch "' + branch + '" not in allowed list: "' + opts.branch.join('", "') + '".');
+        grunt.log.error('FAIL: Current branch "' + branch + '" not in allowed list: "' +
+            opts.branch.join('", "') + '".');
         errors += 1;
       }else{
-        grunt.log.ok('Current branch "' + branch + '" in allowed list: "' + opts.branch.join('", "') + '".');
+        grunt.log.ok('OK: Current branch "' + branch + '" in allowed list: "' +
+            opts.branch.join('", "') + '".');
       }
     }
     if( typeof opts.clean === 'boolean' ){
@@ -314,9 +315,9 @@ module.exports = function(grunt) {
           always: true 
         });
       if( flag === (result.code === 0) ) {
-        grunt.log.ok('Repository is ' + (flag ? '' : 'not ') + 'clean.');
+        grunt.log.ok('OK: Repository is ' + (flag ? '' : 'not ') + 'clean.');
       }else{
-        grunt.log.error('Repository has ' + (flag ? '' : 'no ') + 'staged changes.');
+        grunt.log.error('FAIL: Repository has ' + (flag ? '' : 'no ') + 'staged changes.');
         errors += 1;
       }
     }
@@ -327,9 +328,9 @@ module.exports = function(grunt) {
           always: true 
         });
       if( flag === (result.code === 0) ) {
-        grunt.log.ok('"git push" would ' + (flag ? 'succeed' : 'fail') + '.');
+        grunt.log.ok('OK: "git push" would ' + (flag ? 'succeed' : 'fail') + '.');
       }else{
-        grunt.log.error('Repository is ' + (flag ? 'not ' : '') + 'pushable: ' +
+        grunt.log.error('FAIL: Repository is ' + (flag ? 'not ' : '') + 'pushable: ' +
           result.stdout.trim());
         errors += 1;
       }
@@ -346,9 +347,11 @@ module.exports = function(grunt) {
       // TODO: requires  semver v4.0.0:
 //    if( semver.cmp(data.version, opts.cmpVersion, latestVersion) ) { 
       if( semver[opts.cmpVersion](data.version, latestVersion) ) {
-        grunt.log.ok('Current version (' + data.version + ') is `' + opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
+        grunt.log.ok('OK: Current version (' + data.version + ') is `' +
+            opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
       } else {
-        grunt.log.error('Current version (' + data.version + ') is NOT `' + opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
+        grunt.log.error('FAIL: Current version (' + data.version + ') is NOT `' +
+            opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
         errors += 1;
       }
     }
@@ -356,8 +359,8 @@ module.exports = function(grunt) {
     // }
     // doesn't work(?):
     // grunt.log.writeln('EC: ' + grunt.task.errorCount); 
-    if ( errors  > 0 ) {
-      grunt.fail.warn(errors + grunt.util.pluralize(errors, ' check failed./checks failed.'))  ;
+    if ( errors > 0 ) {
+      grunt.fail.warn(errors + ' ' + grunt.util.pluralize(errors, 'check failed./checks failed.'));
     }
     deferred.resolve();
   };
@@ -422,7 +425,8 @@ module.exports = function(grunt) {
           }
           // grunt.log.writeln(JSON.stringify(grunt.config(opts.updateConfig)));
         }
-        grunt.log.write('Bumping version in ' + filepath + ' from ' + origVersion + ' to ' + manifest.version + '...');
+        grunt.log.write('Bumping version in ' + filepath + ' from ' +
+            origVersion + ' to ' + manifest.version + '...');
       } else {
         // #4: don't try to bump secondaries if they don't have a version field
         grunt.log.warn('Not bumping secondary manifest with missing version field: ' + filepath);
@@ -430,7 +434,9 @@ module.exports = function(grunt) {
       if( !isFirst && opts.syncFields.length ){
         opts.syncFields.forEach(function(field){
           if( manifest[field] != null && !lodash.isEqual(masterManifest[field], manifest[field]) ) {
-            grunt.log.writeln('Sync field "' + field + '" in ' + filepath + ' from ' + JSON.stringify(manifest[field]) + ' to ' + JSON.stringify(masterManifest[field]) + '.');
+            grunt.log.writeln('Sync field "' + field + '" in ' + filepath +
+                ' from ' + JSON.stringify(manifest[field]) +
+                ' to ' + JSON.stringify(masterManifest[field]) + '.');
             manifest[field] = masterManifest[field];
           }
         });
