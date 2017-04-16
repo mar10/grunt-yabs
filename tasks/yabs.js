@@ -11,7 +11,7 @@
  *   - https://github.com/Darsain/grunt-checkrepo
  *   - https://github.com/dymonaz/grunt-checkbranch
  *
- * Copyright (c) 2014-2016 Martin Wendt
+ * Copyright (c) 2014-2017 Martin Wendt
  * Licensed under the MIT license.
  */
 

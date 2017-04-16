@@ -1,4 +1,7 @@
-# 1.1.0-0 / Unreleased
+# 1.1.1-0 / Unreleased
+
+# 1.1.0 / 2017-04-16
+  * Add `replace` tool
   * Add `check.allowedModes` option
   * Check for invalid command line arguments
   * Improve output
