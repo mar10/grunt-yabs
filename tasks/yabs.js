@@ -204,6 +204,7 @@ module.exports = function(grunt) {
    */
   grunt.registerMultiTask('yabs', 'Collection of tools for grunt release workflows.', function() {
 
+    var start = Date.now();
     var taskOpts = grunt.config(this.name);   // config.yabs
     var workflowOpts = taskOpts[this.target]; // config.yabs.WORKFLOW
     // grunt.verbose.writeln("resulting options" + JSON.stringify(workflowOpts));
@@ -272,6 +273,8 @@ module.exports = function(grunt) {
     q.catch(function(msg){
       grunt.fail.warn(msg || 'ERROR: grunt-yabs failed');
     }).finally(function(){
+      grunt.log.writeln('Running ' + data.completedTools.length + ' tools took ' +
+          (0.001 * (Date.now() - start)).toFixed(2) + ' seconds.');
       if( grunt.option('no-write') ) {
         grunt.log.writeln('* DRY-RUN mode: No bits were harmed during the making of this release. *');
       }
