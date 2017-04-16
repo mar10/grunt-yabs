@@ -1,4 +1,6 @@
 # 1.0.2-0 / Unreleased
+  * Improve output
+  * Check for invalid command line arguments
 
 # 1.0.1 / 2016-08-18
   * Fixed compatibility problem with updated superagent

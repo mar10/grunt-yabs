@@ -29,6 +29,7 @@ module.exports = function(grunt) {
   var _ = lodash;
   var tool_handlers = {};
   var KNOWN_TOOLS = 'bump check commit exec githubRelease npmPublish push run tag'.split(' ');
+  var KNOWN_ARGS = '--debug --force --no-color --no-write --npm --stack --tasks --verbose'.split(' ');
   var DEFAULT_OPTIONS = {
     common: { // options used as default for all tools
       args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
@@ -220,6 +221,24 @@ module.exports = function(grunt) {
     var done = grunt.task.current.async();
     // We use promises in order to serialize asnyc operations like ajax requests.
     var q = new Q();
+
+    // Check command line args
+    if( process.argv.length < 3 || process.argv[2].split(':')[0] !== 'yabs' 
+        || process.argv[2].split(':').length !== 3 ) {
+      console.log("argv", JSON.stringify(process.argv));
+      grunt.fail.fatal('Usage: grunt yabs:workflow:mode');
+    }
+
+    // Check command line args
+    var flags = grunt.option.flags();
+    for( var i=0; i<flags.length; i++ ) {
+      var flag = flags[i].split('=')[0];
+      if( !_.includes(KNOWN_ARGS, flag) ) {
+        console.log("args", JSON.stringify(grunt.option.flags()));
+        grunt.fail.warn('Unsupported command line argument "' + flag +
+          '" (' + KNOWN_ARGS.join(', ') + ').');
+      }
+    }
 
     // Run the tool chain. We assume that property order *is* predictable in V8!
     for(var toolname in workflowOpts){
