@@ -32,7 +32,7 @@ module.exports = function(grunt) {
   var KNOWN_ARGS = '--debug --force --no-color --no-write --npm --stack --tasks --verbose'.split(' ');
   var DEFAULT_OPTIONS = {
     common: { // options used as default for all tools
-      args: grunt.util.toArray(this.args), // Additional args after 'yabs:target:'
+      args: _.toArray(this.args), // Additional args after 'yabs:target:'
       verbose: !!grunt.option('verbose'),
       enable: true,             // 
       noWrite: false,           // true enables dry-run
@@ -125,6 +125,12 @@ module.exports = function(grunt) {
     });
   }
 
+  /** Given str of "a/b", If n is 1, return "a" otherwise "b". */
+  function pluralize(n, str, separator) {
+    var parts = str.split(separator || '/');
+    return n === 1 ? (parts[0] || '') : (parts[1] || '');
+  }
+
   /** Read .json file (once) and store in cache. */ 
   function readJsonCached(cache, filepath, reload){
     if( reload || !cache[filepath] ) {
@@ -211,7 +217,7 @@ module.exports = function(grunt) {
 
     // The data object is used to pass data to downstream tools
     var data = {
-      args: grunt.util.toArray(this.args),
+      args: _.toArray(this.args),
       manifestCache: {},
       completedTools: [],
       origVersion: null,
@@ -224,10 +230,10 @@ module.exports = function(grunt) {
     var q = new Q();
 
     // Check command line args
-    if( process.argv.length < 3 || process.argv[2].split(':')[0] !== 'yabs' 
-        || process.argv[2].split(':').length !== 3 ) {
+    if( process.argv.length < 3 || process.argv[2].split(':')[0] !== 'yabs'||
+        process.argv[2].split(':').length !== 3 ) {
       console.log("argv:", JSON.stringify(process.argv));
-      grunt.fail.fatal('Usage: grunt yabs:workflow:mode');
+      grunt.fail.fatal('Usage: grunt yabs:target:mode');
     }
 
     var flags = grunt.option.flags();
@@ -363,7 +369,7 @@ module.exports = function(grunt) {
     // doesn't work(?):
     // grunt.log.writeln('EC: ' + grunt.task.errorCount); 
     if ( errors > 0 ) {
-      grunt.fail.warn(errors + ' ' + grunt.util.pluralize(errors, 'check failed./checks failed.'));
+      grunt.fail.warn(errors + ' ' + pluralize(errors, 'check failed./checks failed.'));
     }
     deferred.resolve();
   };
