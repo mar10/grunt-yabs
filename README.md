@@ -7,7 +7,7 @@
 <b>Y</b>et <b>A</b>nother <b>B</b>uild <b>S</b>cript. *&lt;sigh>, why*? you ask...<br>
 Because
 - It comes with a set of useful tools like 'check', 'bump', 'commit', 'tag', 
-  'push', 'run', 'npmPublish', 'githubRelease', ...
+  'push', 'run', 'npmPublish', 'githubRelease', 'replace', ...
 - Also any other tasks from your Gruntfile may be called.
 - It allows to define mini-workflows by running these tasks in arbitrary order
   with individual options.
@@ -228,6 +228,7 @@ grunt.initConfig({
       common: { 
         // Defaults for all tools in all workflows may go here
       },
+      // Default options for a specific tool in all targets (i.e. workflows)
       bump: {
         // For example 'bump' and 'bump_...' tools should  use this options as 
         // default in all workflows...
@@ -291,6 +292,16 @@ grunt.initConfig({
         tags: false,            // Also push tags
         useFollowTags: false,   // Use `--folow-tags` instead of `&& push --tags`
                                 // (requires git 1.8.3+)
+      },
+      // 'replace': In-place string replacements
+      // (Uses https://github.com/outaTiME/applause)
+      replace: {
+        files: null,              // minimatch globbing pattern
+        patterns: [],             // See https://github.com/outaTiME/applause
+        // Shortcut patterns (pass false to disable):
+        setTimestamp: "{%= grunt.template.today('isoUtcDateTime') %}",
+                                  // Replace '@@timestamp' with current datetime
+        setVersion: '{%= version %}',  // Replace '@@version' with current version
       },
       // 'run': Run arbitrary grunt tasks
       run: {
