@@ -101,12 +101,12 @@ also `minor`, `major`, and others. See below.)
 
 ```
 $ cd <your project>
-$ grunt yabs:release:patch
-Running "yabs:release:patch" (yabs) task
->> Current branch "master" in allowed list: "master".
->> Repository is clean.
->> "git push" would succeed.
->> Current version (1.8.2-0) is `gte` latest tag (1.8.1).
+$ grunt yabs:release:minor
+Running "yabs:release:minor" (yabs) task
+>> OK: Current branch "master" in allowed list: "master".
+>> OK: Repository is clean.
+>> OK: "git push" would succeed.
+>> OK: Current version (1.16.1-0) is `gte` latest tag (1.16.0).
 Run task "test"...
 Running "jshint:files" (jshint) task
 >> 2 files lint free.
@@ -115,21 +115,20 @@ Running "jscs:src" (jscs) task
 >> 2 files without code style errors.
 
 Running "qunit:all" (qunit) task
-Testing test/index.html .........OK
-Testing test/index-jquery-ui-1-10.html .........OK
->> 148 assertions passed (10820ms)
+Testing test/index.html ....OK
+>> 4 tests completed with 0 failed, 0 skipped, and 0 todo. 
+>> 424 assertions (in 15782ms), passed: 424, failed: 0
 
-Done, without errors.
+Done.
 >> Run task "test".
->> Updated config.pkg.version to 1.8.2
-Bumping version in package.json from 1.8.2-0 to 1.8.2...OK
-Bumping version in bower.json from 1.8.2-0 to 1.8.2...OK
-Bumping version in ui-contextmenu.jquery.json from 1.8.2-0 to 1.8.2...OK
+>> Updated config.pkg.version to 1.17.0
+Bumping version in package.json from 1.16.1-0 to 1.17.0...OK
+Bumping version in bower.json from 1.16.1-0 to 1.17.0...OK
 Run task "build"...
 Running "exec:tabfix" (exec) task
 
-Modified 0/2828 lines, 0/15 files in 263 folders, skipped: 0
-         96837 bytes -> 96837 bytes (+0%), elapsed: 0.111 sec
+Modified 0/4377 lines, 0/27 files in 295 folders, skipped: 0
+         147453 bytes -> 147453 bytes (+0%), elapsed: 0.231 sec
 
 Running "jshint:files" (jshint) task
 >> 2 files lint free.
@@ -138,32 +137,38 @@ Running "jscs:src" (jscs) task
 >> 2 files without code style errors.
 
 Running "qunit:all" (qunit) task
-Testing test/index.html .........OK
-Testing test/index-jquery-ui-1-10.html .........OK
->> 148 assertions passed (11562ms)
+Testing test/index.html ....OK
+>> 4 tests completed with 0 failed, 0 skipped, and 0 todo. 
+>> 424 assertions (in 14980ms), passed: 424, failed: 0
 
 Running "uglify:build" (uglify) task
+File jquery.ui-contextmenu.min.js.map created (source map).
+File jquery.ui-contextmenu.min.js created: 17.42 kB → 8.38 kB → 3.02 kB (gzip)
 >> 1 sourcemap created.
 >> 1 file created.
 
-Done, without errors.
+Done.
 >> Run task "build".
->> Commited "Bumping version to 1.8.2"
->> Current branch "master" in allowed list: "master".
->> Repository is clean.
->> Created tag v1.8.2: "Version 1.8.2"
+Replace task "jquery.ui-contextmenu.min.js"...
+>> Replaced 1 occurences in jquery.ui-contextmenu.min.js:
+    /@VERSION/g => "1.17.0"
+>> Replaced 1 matches in 1 / 1 files.
+>> Commited "Bump version to 1.17.0"
+>> OK: Current branch "master" in allowed list: "master".
+>> OK: Repository is clean.
+>> Created tag v1.17.0: "Version 1.17.0"
 >> Pushed  (with tags).
->> Created GitHub release mar10/jquery-ui-contextmenu v1.8.2.
+>> Created GitHub release mar10/jquery-ui-contextmenu v1.17.0.
 >> Published to npm.
->> Updated config.pkg.version to 1.8.3-0
-Bumping version in package.json from 1.8.2 to 1.8.3-0...OK
-Bumping version in bower.json from 1.8.2 to 1.8.3-0...OK
-Bumping version in ui-contextmenu.jquery.json from 1.8.2 to 1.8.3-0...OK
->> Commited "Bump prerelease (1.8.3-0) [ci skip]"
+>> Updated config.pkg.version to 1.17.1-0
+Bumping version in package.json from 1.17.0 to 1.17.1-0...OK
+Bumping version in bower.json from 1.17.0 to 1.17.1-0...OK
+>> Commited "Bump prerelease (1.17.1-0) [ci skip]"
 >> Pushed  (no tags).
+Running 14 tools took 114.89 seconds.
 
-Done, without errors.
-$
+Done.
+$ 
 ```
 
 See also 
