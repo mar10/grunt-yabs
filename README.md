@@ -68,7 +68,7 @@ grunt.initConfig({
       // `git commit` the changes
       commit: {},
 
-      // Create an annotaded git tag
+      // Create an annotated git tag
       tag: {},
 
       // `git push --follow-tags`
@@ -258,7 +258,7 @@ grunt.initConfig({
       // 'check': Assert preconditons and fail otherwise
       check: {
         allowedModes: null,     // Optionally restrict yabs:target:MODE to this
-                                   value(s). Useful for maintenance branches.
+                                // value(s). Useful for maintenance branches.
         branch: ['master'],     // Current branch must be in this list
         canPush: undefined,     // Test if 'git push' would/would not succeed
         clean: undefined,       // Repo must/must not contain modifications? 
