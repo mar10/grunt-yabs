@@ -404,7 +404,7 @@ module.exports = function(grunt) {
    * Replace strings (uses https://github.com/outaTiME/applause).
    */
   tool_handlers.replace = function(deferred, opts, data) {
-    var file;
+    var file, i;
     var replace_file_count = 0;
     var match_count = 0;
 
@@ -414,14 +414,17 @@ module.exports = function(grunt) {
       grunt.fail.fatal('Please specify a file pattern (' + opts.files + ').');
     }
     if( opts.setTimestamp ) {
-      opts.patterns.push({ match: 'timestamp', replacement: processTemplate("" + opts.setTimestamp, data) });
+      opts.patterns.push({ match: 'timestamp', replacement: opts.setTimestamp });
     }
     if( opts.setVersion ) {
-      opts.patterns.push({ match: 'version', replacement: processTemplate("" + opts.setVersion, data) });
+      opts.patterns.push({ match: 'version', replacement: opts.setVersion });
+    }
+    for(i=0; i<opts.patterns.length; i++) {
+      opts.patterns[i].replacement = processTemplate("" + opts.patterns[i].replacement, data);
     }
     var applause = Applause.create({patterns: opts.patterns});
     var files = grunt.file.expand(opts.files);
-    for(var i=0; i<files.length; i++) {
+    for(i=0; i<files.length; i++) {
       file = files[i];
 
       var contents = grunt.file.read(file, {encoding: 'utf8'});
