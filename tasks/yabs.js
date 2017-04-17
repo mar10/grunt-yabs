@@ -244,7 +244,7 @@ module.exports = function(grunt) {
     // Check command line args
     if( process.argv.length < 3 || process.argv[2].split(':')[0] !== 'yabs'||
         process.argv[2].split(':').length !== 3 ) {
-      console.log("argv:", JSON.stringify(process.argv));
+      grunt.log.errorlns("argv:", JSON.stringify(process.argv));
       grunt.fail.fatal('Usage: grunt yabs:target:mode');
     }
 
@@ -252,9 +252,9 @@ module.exports = function(grunt) {
     for( var i=0; i<flags.length; i++ ) {
       var flag = flags[i].split('=')[0];
       if( !_.includes(KNOWN_ARGS, flag) ) {
-        console.log("flags:", JSON.stringify(grunt.option.flags()));
+        grunt.log.errorlns("flags:", JSON.stringify(grunt.option.flags()));
         grunt.fail.warn('Unsupported command line argument "' + flag +
-          '" (' + KNOWN_ARGS.join(', ') + ').');
+          '" (' + grunt.log.wordlist(KNOWN_ARGS) + ').');
       }
     }
 
@@ -263,9 +263,9 @@ module.exports = function(grunt) {
       if( toolname === 'common' ) { continue; }
       var tooltype = toolname.match(/^([^_]*)/)[1];
       if( !_.includes(KNOWN_TOOLS, tooltype) ){
-        grunt.fail.warn('Tool "' + toolname + '" is not of a known type (' + KNOWN_TOOLS.join(', ') + ').');
+        grunt.fail.warn('Tool "' + toolname + '" is not of a known type (' + grunt.log.wordlist(KNOWN_TOOLS) + ').');
       }
-      var toolOptions = lodash.merge(
+      var toolOptions = _.merge(
         {}, // copy, so we don't modify the original
         DEFAULT_OPTIONS.common,                            // Hard coded defaults
         DEFAULT_OPTIONS[tooltype], 
@@ -311,13 +311,13 @@ module.exports = function(grunt) {
       makeArrayOpt(opts, 'allowedModes');
       var mode = (data.args.length ? data.args[0] : null);
       valid = _.includes(opts.allowedModes, mode);
+      grunt.log.write('Check if current mode "' + mode + '" is in allowed list (' +
+          grunt.log.wordlist(opts.allowedModes) + '): ');
       if( !valid ) {
-        grunt.log.error('FAIL: Current mode "' + mode + '" not in allowed list: "' +
-            opts.allowedModes.join('", "') + '".');
+        grunt.log.error();
         errors += 1;
       }else{
-        grunt.log.ok('OK: Current mode "' + mode + '" in allowed list: "' +
-            opts.allowedModes.join('", "') + '".');
+        grunt.log.ok();
       }
     }
 
@@ -333,13 +333,13 @@ module.exports = function(grunt) {
           return false;
         }
       });
+      grunt.log.write('Check if current branch "' + branch + '" is in allowed list (' +
+          grunt.log.wordlist(opts.branch) + '): ');
       if( !valid ) {
-        grunt.log.error('FAIL: Current branch "' + branch + '" not in allowed list: "' +
-            opts.branch.join('", "') + '".');
+        grunt.log.error();
         errors += 1;
       }else{
-        grunt.log.ok('OK: Current branch "' + branch + '" in allowed list: "' +
-            opts.branch.join('", "') + '".');
+        grunt.log.ok();
       }
     }
     if( typeof opts.clean === 'boolean' ){
@@ -349,10 +349,11 @@ module.exports = function(grunt) {
           checkResultCode: false,
           always: true 
         });
+      grunt.log.write('Check if repository is ' + (flag ? '' : 'not ') + 'clean: ');
       if( flag === (result.code === 0) ) {
-        grunt.log.ok('OK: Repository is ' + (flag ? '' : 'not ') + 'clean.');
+        grunt.log.ok();
       }else{
-        grunt.log.error('FAIL: Repository has ' + (flag ? '' : 'no ') + 'staged changes.');
+        grunt.log.error();
         errors += 1;
       }
     }
@@ -362,11 +363,12 @@ module.exports = function(grunt) {
           checkResultCode: false,
           always: true 
         });
+      grunt.log.write('Check if "git push" would ' + (flag ? 'succeed' : 'fail') + ': ');
       if( flag === (result.code === 0) ) {
-        grunt.log.ok('OK: "git push" would ' + (flag ? 'succeed' : 'fail') + '.');
+        grunt.log.ok();
       }else{
-        grunt.log.error('FAIL: Repository is ' + (flag ? 'not ' : '') + 'pushable: ' +
-          result.stdout.trim());
+        grunt.log.error();
+        grunt.log.errorlns(result.stdout.trim());
         errors += 1;
       }
     }
@@ -381,12 +383,12 @@ module.exports = function(grunt) {
       latestVersion = semver.valid(latestVersion);
       // TODO: requires  semver v4.0.0:
 //    if( semver.cmp(data.version, opts.cmpVersion, latestVersion) ) { 
+      grunt.log.write('Check if current version (' + data.version + ') is `' +
+          opts.cmpVersion + '` latest tag (' + latestVersion   + '): ');
       if( semver[opts.cmpVersion](data.version, latestVersion) ) {
-        grunt.log.ok('OK: Current version (' + data.version + ') is `' +
-            opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
+        grunt.log.ok();
       } else {
-        grunt.log.error('FAIL: Current version (' + data.version + ') is NOT `' +
-            opts.cmpVersion + '` latest tag (' + latestVersion   + ').');
+        grunt.log.error();
         errors += 1;
       }
     }
@@ -433,10 +435,11 @@ module.exports = function(grunt) {
         replace_file_count += 1;
         match_count += result.count;
         if( opts.noWrite ) {
-          grunt.log.ok('DRY-RUN: Replaced ' + result.count + ' occurences in ' + file + ':');
+          grunt.log.writeln('DRY-RUN: Replace ' + result.count + ' occurrences in ' + file + ':');
         } else {
+          grunt.log.write('Replaced ' + result.count + ' occurrences in ' + file + ': ');
           grunt.file.write(file, result.content);
-          grunt.log.ok('Replaced ' + result.count + ' occurences in ' + file + ':');
+          grunt.log.ok();
         }
         /* jshint -W083 */ // Don't make functions within a loop.
         result.detail.forEach(function(o) {
@@ -463,9 +466,9 @@ module.exports = function(grunt) {
     makeArrayOpt(opts, 'syncFields');
  
     if( !mode ) {
-      grunt.fail.fatal('Please specify a mode (' + MODES.join(', ') + ').');
+      grunt.fail.fatal('Please specify a mode (' + grunt.log.wordlist(MODES) + ').');
     }else if( ! _.includes(MODES, mode) ) {
-      grunt.fail.fatal('Unsupported mode "' + mode + '" (expected ' + MODES.join(', ') + ').');
+      grunt.fail.fatal('Unsupported mode "' + mode + '" (expected ' + grunt.log.wordlist(MODES) + ').');
     }
     if( _.includes(opts.syncFields, 'version') ) {
       grunt.fail.fatal('Use "bump.syncVersions: true" instead of bump.syncFields["version"].');
@@ -505,23 +508,24 @@ module.exports = function(grunt) {
         data.version = masterManifest.version;
 
         if( isFirst && opts.updateConfig ){
+          grunt.log.write('Update config.' + opts.updateConfig + '.version to ' + masterManifest.version + ' ');
           if( grunt.config(opts.updateConfig) ){
             grunt.config(opts.updateConfig + '.version', masterManifest.version);
-            grunt.log.ok('Updated config.' + opts.updateConfig + '.version to ' + masterManifest.version);
+            grunt.log.ok();
           }else{
             grunt.fail.warn('Cannot update config.' + opts.updateConfig + ' (does not exist)');
           }
           // grunt.log.writeln(JSON.stringify(grunt.config(opts.updateConfig)));
         }
-        grunt.log.write('Bumping version in ' + filepath + ' from ' +
-            origVersion + ' to ' + manifest.version + '...');
+        grunt.log.write('Bump version in ' + filepath + ' from ' +
+            origVersion + ' to ' + manifest.version + '... ');
       } else {
         // #4: don't try to bump secondaries if they don't have a version field
         grunt.log.warn('Not bumping secondary manifest with missing version field: ' + filepath);
       }
       if( !isFirst && opts.syncFields.length ){
         opts.syncFields.forEach(function(field){
-          if( manifest[field] != null && !lodash.isEqual(masterManifest[field], manifest[field]) ) {
+          if( manifest[field] != null && !_.isEqual(masterManifest[field], manifest[field]) ) {
             grunt.log.writeln('Sync field "' + field + '" in ' + filepath +
                 ' from ' + JSON.stringify(manifest[field]) +
                 ' to ' + JSON.stringify(masterManifest[field]) + '.');
@@ -544,9 +548,11 @@ module.exports = function(grunt) {
    */
   tool_handlers.run = function(deferred, opts, data) {
     var task = opts.tasks.join(' ');
-    grunt.log.writeln('Run task "' + task + '"...');
+
+    grunt.log.writeln('Run task "' + task + '" starting...');
     exec(opts, 'grunt ' + task, {silent: opts.silent});
-    grunt.log.ok('Run task "' + task + '".');
+    grunt.log.write('Run task "' + task + '" ');
+    grunt.log.ok();
     deferred.resolve();
   };
 
@@ -557,13 +563,14 @@ module.exports = function(grunt) {
     makeArrayOpt(opts, 'add');
     if( opts.add.length ){
       exec(opts, 'git add ' + opts.add.join(' '));
-      grunt.log.ok('Added files for commit: ' + opts.add.join(', '));
+      grunt.log.ok('Added files for commit: ' + grunt.log.wordlist(opts.add));
     }
     var message = processTemplate(opts.message, data);
     var commitArgs = opts.addKnown ? '-am' : '-m';
     exec(opts, 'git commit ' + commitArgs + ' "' + message + '"');
     // exec(opts, 'git commit ' + commitArgs + ' "' + message + '" "' + opts.manifests.join('" "') + '"');
-    grunt.log.ok('Commited "' + message + '"');
+    grunt.log.write('Commit "' + message + '" ');
+    grunt.log.ok();
     deferred.resolve();
   };
 
@@ -574,7 +581,8 @@ module.exports = function(grunt) {
     var name = processTemplate(opts.name, data);
     var message = processTemplate(opts.message, data);
     exec(opts, 'git tag "' + name + '" -m "' + message + '"');
-    grunt.log.ok('Created tag ' + name + ': "' + message + '"');
+    grunt.log.write('Create tag ' + name + ': "' + message + '" ');
+    grunt.log.ok();
     data.lastTagName = name;
     deferred.resolve();
   };
@@ -583,17 +591,20 @@ module.exports = function(grunt) {
    * Push commits and tags.
    */
   tool_handlers.push = function(deferred, opts, data) {
+    var target = opts.target ? (opts.target + ' ') : '';
+
     if( opts.tags ) {
       if( opts.useFollowTags ) {
         // Pushing in one command prevents Travis from starting two jobs (requires git 1.8.3+)
-        exec(opts, 'git push ' + opts.target + ' --follow-tags');
+        exec(opts, 'git push ' + target + '--follow-tags');
       }else{
-        exec(opts, 'git push ' + opts.target + ' && git push ' + opts.target + ' --tags');
+        exec(opts, 'git push ' + target + '&& git push ' + target + ' --tags');
       }
     }else{
-      exec(opts, 'git push ' + opts.target);
+      exec(opts, 'git push ' + target);
     }
-    grunt.log.ok('Pushed ' + opts.target + ' (' + (opts.tags ? 'with tags' : 'no tags') + ').');
+    grunt.log.write('Push ' + opts.target + '(' + (opts.tags ? 'with tags' : 'no tags') + ') ');
+    grunt.log.ok();
     deferred.resolve();
   };
 
@@ -603,7 +614,8 @@ module.exports = function(grunt) {
   tool_handlers.npmPublish = function(deferred, opts, data) {
     var message = processTemplate(opts.message, data);
     exec(opts, 'npm publish .');
-    grunt.log.ok('Published to npm.');
+    grunt.log.write('Publish to npm ');
+    grunt.log.ok();
     deferred.resolve();
   };
 
@@ -636,6 +648,7 @@ module.exports = function(grunt) {
       return;
     }
 
+    grunt.log.write('Create GitHub release ' + opts.repo + ' ' + tagName + '... ');
     request
       .post('https://api.github.com/repos/' + opts.repo + '/releases')
       .auth(process.env[opts.auth.usernameVar], process.env[opts.auth.passwordVar])
@@ -644,9 +657,10 @@ module.exports = function(grunt) {
       .send(sendArgs)
       .end(function(err, res){
         if( res.status === 201 ) {
-          grunt.log.ok('Created GitHub release ' + opts.repo + ' ' + tagName + '.');
+          grunt.log.ok();
           deferred.resolve();
         } else {
+          grunt.log.error();
           grunt.fail.warn('Error creating GitHub release: ' + res.status + " " + res.text);
           deferred.reject(res.text);
         }
