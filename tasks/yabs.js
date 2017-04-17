@@ -82,7 +82,7 @@ module.exports = function(grunt) {
     commit: {
       add: [],                  // Also `git add` these files ('.' for all)
       addKnown: true,           // Commit with -a flag
-      message: 'Bumping version to {%= version %}',
+      message: 'Bump version to {%= version %}',
     },
     // 'tag': Create a tag
     tag: {
@@ -99,7 +99,7 @@ module.exports = function(grunt) {
     // 'npmPublish': Submit to npm repository
     npmPublish: {
 //    tag: null,
-      message: 'Released {%= version %}',
+      message: 'Release {%= version %}',
     },
     // 'githubRelease': Create a release on GitHub
     githubRelease: {
@@ -108,7 +108,7 @@ module.exports = function(grunt) {
 //    tagName: 'v1.0.0',
 //    targetCommitish: null, //'master',
       name: 'v{%= version %}',
-      body: 'Released {%= version %}\n' +
+      body: 'Release {%= version %}\n' +
           '[Commit details](https://github.com/{%= repo %}/compare/{%= currentTagName %}...{%= lastTagName %}).',
       draft: true,
       prerelease: false,
