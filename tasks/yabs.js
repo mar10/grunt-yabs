@@ -35,7 +35,7 @@ module.exports = function(grunt) {
     common: { // options used as default for all tools
       args: _.toArray(this.args), // Additional args after 'yabs:target:'
       verbose: !!grunt.option('verbose'),
-      enable: true,             // 
+      enable: true,             //
       noWrite: false,           // true enables dry-run
       manifests: ['package.json'], // First entry is 'master' for synchronizing
     },
@@ -49,8 +49,8 @@ module.exports = function(grunt) {
       branch: ['master'],       // Current branch must be in this list
       canPush: undefined,       // Test if 'git push' would/would not succeed
       clean: undefined,         // Repo must/must not contain modifications?
-      cmpVersion: null,         // E.g. set to 'gt' to assert that the current 
-                                // version is higher than the latest tag (gt, 
+      cmpVersion: null,         // E.g. set to 'gt' to assert that the current
+                                // version is higher than the latest tag (gt,
                                 // gte, lt, lte, eq, neq)
 //      allowDirty: [],
 //      isPrerelease: undefined,
@@ -143,7 +143,7 @@ module.exports = function(grunt) {
     return n === 1 ? (parts[0] || '') : (parts[1] || '');
   }
 
-  /** Read .json file (once) and store in cache. */ 
+  /** Read .json file (once) and store in cache. */
   function readJsonCached(cache, filepath, reload){
     if( reload || !cache[filepath] ) {
       cache[filepath] = grunt.file.readJSON(filepath);
@@ -172,7 +172,7 @@ module.exports = function(grunt) {
     }
   }
 
-  /** Return (and store) name of latest repository tag ('0.0.0' if none found) */ 
+  /** Return (and store) name of latest repository tag ('0.0.0' if none found) */
   function getCurrentTagNameCached(opts, data, reload){
     if( reload || !data.currentTagName ) {
       // Get new tags from the remote
@@ -183,7 +183,7 @@ module.exports = function(grunt) {
       if( result.stdout.trim() === '' ) {
         data.currentTagName = "v0.0.0";
         grunt.log.warn('Repository does not have any tags: assuming "' + data.currentTagName + '"');
-      } else {      
+      } else {
         // Get the latest tag name
         result = exec(opts, 'git rev-list --tags --max-count=1', {always: true});
         result = exec(opts, 'git describe --tags ' + result.stdout.trim(), {always: true});
@@ -203,8 +203,8 @@ module.exports = function(grunt) {
 
       // dispData.masterManifest = '...';
       if( toolOptions.enable ) {
-        grunt.verbose.writeln('Running "' + toolname + 
-          '" tool with opts=' + JSON.stringify(toolOptions) + 
+        grunt.verbose.writeln('Running "' + toolname +
+          '" tool with opts=' + JSON.stringify(toolOptions) +
           ', data=' + JSON.stringify(dispData) + '...');
         tool_handlers[tooltype](deferred, toolOptions, data);
         data.completedTools.push(toolname);
@@ -236,7 +236,7 @@ module.exports = function(grunt) {
       version: null,
       lastTag: null,
     };
-    // This task runs 
+    // This task runs
     var done = grunt.task.current.async();
     // We use promises in order to serialize asnyc operations like ajax requests.
     var q = new Q();
@@ -268,12 +268,12 @@ module.exports = function(grunt) {
       var toolOptions = _.merge(
         {}, // copy, so we don't modify the original
         DEFAULT_OPTIONS.common,                            // Hard coded defaults
-        DEFAULT_OPTIONS[tooltype], 
+        DEFAULT_OPTIONS[tooltype],
         grunt.config([this.name, 'options', 'common']),    // config.yabs.options.common
         grunt.config([this.name, 'options', tooltype]),    // config.yabs.options.TOOLTYPE
         grunt.config([this.name, this.target, 'common']),  // config.yabs.WORKFLOW.common
         grunt.config([this.name, this.target, toolname])); // config.yabs.WORKFLOW.TOOLNAME
-      
+
       // Make sure that --no-write is always honored
       if( grunt.option('no-write') ) {
         toolOptions.noWrite = true;
@@ -304,7 +304,7 @@ module.exports = function(grunt) {
    * Assert preconditions and fail otherwise.
    */
   tool_handlers.check = function(deferred, opts, data) {
-    var flag, latestVersion, result, valid, 
+    var flag, latestVersion, result, valid,
         errors = 0;
 
     if( opts.allowedModes ){
@@ -345,9 +345,9 @@ module.exports = function(grunt) {
     if( typeof opts.clean === 'boolean' ){
       // http://stackoverflow.com/questions/2657935/checking-for-a-dirty-index-or-untracked-files-with-git
       flag = !!opts.clean;
-      result = exec(opts, 'git diff-index --quiet HEAD --', { 
+      result = exec(opts, 'git diff-index --quiet HEAD --', {
           checkResultCode: false,
-          always: true 
+          always: true
         });
       grunt.log.write('Check if repository is ' + (flag ? '' : 'not ') + 'clean: ');
       if( flag === (result.code === 0) ) {
@@ -359,9 +359,9 @@ module.exports = function(grunt) {
     }
     if( typeof opts.canPush === 'boolean' ){
       flag = !!opts.canPush;
-      result = exec(opts, 'git push --dry-run', { 
+      result = exec(opts, 'git push --dry-run', {
           checkResultCode: false,
-          always: true 
+          always: true
         });
       grunt.log.write('Check if "git push" would ' + (flag ? 'succeed' : 'fail') + ': ');
       if( flag === (result.code === 0) ) {
@@ -382,7 +382,7 @@ module.exports = function(grunt) {
       latestVersion = getCurrentTagNameCached(opts, data);
       latestVersion = semver.valid(latestVersion);
       // TODO: requires  semver v4.0.0:
-//    if( semver.cmp(data.version, opts.cmpVersion, latestVersion) ) { 
+//    if( semver.cmp(data.version, opts.cmpVersion, latestVersion) ) {
       grunt.log.write('Check if current version (' + data.version + ') is `' +
           opts.cmpVersion + '` latest tag (' + latestVersion   + '): ');
       if( semver[opts.cmpVersion](data.version, latestVersion) ) {
@@ -395,7 +395,7 @@ module.exports = function(grunt) {
     // if( typeof opts.isPrerelease === 'boolean' ){
     // }
     // doesn't work(?):
-    // grunt.log.writeln('EC: ' + grunt.task.errorCount); 
+    // grunt.log.writeln('EC: ' + grunt.task.errorCount);
     if ( errors > 0 ) {
       grunt.fail.warn(errors + ' ' + pluralize(errors, 'check failed./checks failed.'));
     }
@@ -464,7 +464,7 @@ module.exports = function(grunt) {
     var mode = opts.inc || (data.args.length ? data.args[0] : null);
 
     makeArrayOpt(opts, 'syncFields');
- 
+
     if( !mode ) {
       grunt.fail.fatal('Please specify a mode (' + grunt.log.wordlist(MODES) + ').');
     }else if( ! _.includes(MODES, mode) ) {
@@ -627,13 +627,19 @@ module.exports = function(grunt) {
     var body = processTemplate(opts.body, data);
     var name = processTemplate(opts.name, data);
     var tagName = opts.tagName ? processTemplate(opts.tagName, data) : data.lastTagName;
-    
+
     if( !data.version || !tagName ) {
       deferred.reject('Missing version and/or tag (run bump and tag tools before githubRelease)');
       return;
     }
+    if( !process.env[opts.auth.usernameVar] || !process.env[opts.auth.passwordVar] ) {
+      deferred.reject('Invalid option githubRelease.auth.usernameVar: "' +
+        opts.auth.usernameVar + '" or passwordVar "' + opts.auth.passwordVar + '"');
+      return;
+    }
+
     var sendArgs = {
-      tag_name: tagName, 
+      tag_name: tagName,
 //    target_commitish: null, //'master',
       name: name,
       body: body,
