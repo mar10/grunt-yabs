@@ -1,4 +1,8 @@
-# 1.1.2-0 / Unreleased
+# 1.1.3-0 / Unreleased
+
+# 1.1.2 / 2017-08-28
+  * More colors in output
+  * Better warnings if githubRelease fails
 
 # 1.1.1 / 2017-04-17
   * Allow templates in replacements
@@ -24,7 +28,7 @@
   * Update peerDependencies to support Grunt 1.0
 
 # 0.5.0 / 2015-06-28
-  * 
+  *
 
 # 0.4.0 / 2014-09-26
-  * 
+  *
