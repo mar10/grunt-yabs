@@ -549,9 +549,9 @@ module.exports = function(grunt) {
   tool_handlers.run = function(deferred, opts, data) {
     var task = opts.tasks.join(' ');
 
-    grunt.log.writeln('Run task "' + task + '" starting...');
+    grunt.log.writeln('Run task "' + task + '": starting...');
     exec(opts, 'grunt ' + task, {silent: opts.silent});
-    grunt.log.write('Run task "' + task + '" ');
+    grunt.log.write('Run task "' + task + '": done.');
     grunt.log.ok();
     deferred.resolve();
   };
