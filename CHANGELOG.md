@@ -1,5 +1,9 @@
 # 1.1.3-0 / Unreleased
 
+# 1.2.0 / 2019-12-27
+  * GitHib API: basic authentication is deprecated.
+    Use GITHUB_OAUTH_TOKEN instead of GITHUB_USERNAME + GITHUB_PASSWORD
+
 # 1.1.2 / 2017-08-28
   * More colors in output
   * Better warnings if githubRelease fails

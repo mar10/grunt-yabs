@@ -104,7 +104,8 @@ module.exports = function(grunt) {
     // 'githubRelease': Create a release on GitHub
     githubRelease: {
       repo: null, // 'owner/repo'
-      auth: {usernameVar: 'GITHUB_USERNAME', passwordVar: 'GITHUB_PASSWORD'},
+      // auth: {usernameVar: 'GITHUB_USERNAME', passwordVar: 'GITHUB_PASSWORD'},
+      auth: {oauthTokenVar: 'GITHUB_OAUTH_TOKEN'},
 //    tagName: 'v1.0.0',
 //    targetCommitish: null, //'master',
       name: 'v{%= version %}',
@@ -632,11 +633,22 @@ module.exports = function(grunt) {
       deferred.reject('Missing version and/or tag (run bump and tag tools before githubRelease)');
       return;
     }
-    if( !process.env[opts.auth.usernameVar] || !process.env[opts.auth.passwordVar] ) {
-      deferred.reject('Invalid option githubRelease.auth.usernameVar: "' +
-        opts.auth.usernameVar + '" or passwordVar "' + opts.auth.passwordVar + '"');
+
+    if( !process.env[opts.auth.oauthTokenVar] ) {
+      deferred.reject('Invalid option githubRelease.auth.oauthTokenVar: "' +
+        opts.auth.oauthTokenVar + '": this environment variable is empty.');
       return;
     }
+    if( process.env[opts.auth.usernameVar] || process.env[opts.auth.passwordVar] ) {
+      grunt.log.warn('Option githubRelease.auth.usernameVar/passwordVar is deprecated, ' +
+        'use "oauthTokenVar" instead.');
+      return;
+    }
+    // if( !process.env[opts.auth.usernameVar] || !process.env[opts.auth.passwordVar] ) {
+    //   deferred.reject('Invalid option githubRelease.auth.usernameVar: "' +
+    //     opts.auth.usernameVar + '" or passwordVar "' + opts.auth.passwordVar + '"');
+    //   return;
+    // }
 
     var sendArgs = {
       tag_name: tagName,
@@ -657,7 +669,8 @@ module.exports = function(grunt) {
     grunt.log.write('Create GitHub release ' + opts.repo + ' ' + tagName + '... ');
     request
       .post('https://api.github.com/repos/' + opts.repo + '/releases')
-      .auth(process.env[opts.auth.usernameVar], process.env[opts.auth.passwordVar])
+      // .auth(process.env[opts.auth.usernameVar], process.env[opts.auth.passwordVar])
+      .set('Authorization', 'token ' + process.env[opts.auth.oauthTokenVar])
       .set('Accept', 'application/vnd.github.manifold-preview')
       .set('User-Agent', 'grunt-yabs')
       .send(sendArgs)
@@ -667,6 +680,9 @@ module.exports = function(grunt) {
           deferred.resolve();
         } else {
           grunt.log.error();
+          if(res.status === 404){
+            grunt.log.warn('(This may be due to an incorrect oauth token.)');
+          }
           grunt.fail.warn('Error creating GitHub release: ' + res.status + " " + res.text);
           deferred.reject(res.text);
         }
