@@ -1,4 +1,7 @@
-# 1.1.3-0 / Unreleased
+# 1.2.1-0 / Unreleased
+
+# 1.2.1 / 2020-03-27
+  * Accept `--gruntfile` argument (compatible with recent grunt-cli)
 
 # 1.2.0 / 2019-12-27
   * GitHib API: basic authentication is deprecated.

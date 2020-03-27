@@ -30,7 +30,7 @@ module.exports = function(grunt) {
   var _ = lodash;
   var tool_handlers = {};
   var KNOWN_TOOLS = 'bump check commit exec githubRelease npmPublish push replace run tag'.split(' ');
-  var KNOWN_ARGS = '--debug --force --no-color --no-write --npm --stack --tasks --verbose'.split(' ');
+  var KNOWN_ARGS = '--debug --force --gruntfile --no-color --no-write --npm --stack --tasks --verbose'.split(' ');
   var DEFAULT_OPTIONS = {
     common: { // options used as default for all tools
       args: _.toArray(this.args), // Additional args after 'yabs:target:'
