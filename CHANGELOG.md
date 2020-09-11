@@ -1,4 +1,6 @@
-# 1.2.1-0 / Unreleased
+# 1.2.2-0 / Unreleased
+  * Vendored [applause](https://github.com/outaTiME/applause) which is 
+    unmaintained and contains security vulnerabilities.
 
 # 1.2.1 / 2020-03-27
   * Accept `--gruntfile` argument (compatible with recent grunt-cli)

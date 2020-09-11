@@ -17,7 +17,11 @@
 
 'use strict';
 
-var Applause = require('applause');
+// NOTE:
+// Vendored https://github.com/outaTiME/applause) which is unmaintained and 
+// contains security vulnerabilities.
+var Applause = require('./vendor/applause/src/applause');
+
 var lodash = require('lodash');
 var Q = require('q');
 var request = require('superagent');
