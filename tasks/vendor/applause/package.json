@@ -1,0 +1,50 @@
+{
+  "name": "applause",
+  "description": "Human-friendly replacements.",
+  "version": "1.2.3",
+  "author": {
+    "name": "outaTiME",
+    "url": "http://outa.im/"
+  },
+  "repository": "outaTiME/applause",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "scripts": {
+    "release": "scripts/release.sh",
+    "test": "grunt test"
+  },
+  "dependencies": {
+    "cson-parser": "^1.2.0",
+    "js-yaml": "^3.3.0",
+    "lodash": "^3.10.0"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.0",
+    "grunt-contrib-jshint": "^0.11.0",
+    "grunt-contrib-watch": "^0.6.0",
+    "grunt-mocha-test": "^0.12.0",
+    "grunt-exec": "^0.4.6",
+    "spacejam": "^1.2.0"
+  },
+  "keywords": [
+    "replace",
+    "replacement",
+    "pattern",
+    "patterns",
+    "match",
+    "text",
+    "string",
+    "regex",
+    "regexp",
+    "json",
+    "yaml",
+    "cson",
+    "flatten"
+  ],
+  "main": "src/applause.js",
+  "files": [
+    "src"
+  ]
+}
