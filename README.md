@@ -1,4 +1,7 @@
-# grunt-yabs [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/) [![Reference Status](https://www.versioneye.com/nodejs/grunt-yabs/reference_badge.svg?style=flat)](https://www.versioneye.com/nodejs/grunt-yabs/references)
+# grunt-yabs
+[![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
+[![GitHub version](https://badge.fury.io/gh/mar10%2Fgrunt-yabs.svg)](https://github.com/mar10/grunt-yabs/releases/latest)
+[![npm](https://img.shields.io/npm/dm/grunt-yabs.svg)](https://www.npmjs.com/package/jquery.grunt-yabs)
 
 > Collection of tools for grunt release workflows (using git).
 
@@ -22,8 +25,8 @@ Let me know if you find bugs or have suggestions.<br>
 [Review the code](https://github.com/mar10/grunt-yabs/blob/master/tasks/yabs.js)
 if you like.
 
-**Note:** Especially option defaults may change, so use dry-run mode after updating this
-plugin.
+**Note:** Especially option defaults may change, so use dry-run mode after 
+updating this plugin.
 
 
 ## Annotated Sample Workflow
