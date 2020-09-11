@@ -1,4 +1,7 @@
-# 1.2.2-0 / Unreleased
+# 1.3.1-0 / Unreleased
+  * 
+
+# 1.3.0 / 2020-09-11
   * Vendored [applause](https://github.com/outaTiME/applause) which is 
     unmaintained and contains security vulnerabilities.
 
